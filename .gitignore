@@ -1,0 +1,6 @@
+*.o
+.*.swp
+x64
+*.sdf
+*.suo
+*.vcxproj.*
