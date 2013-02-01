@@ -51,6 +51,17 @@ protected:
 	ID3D10DepthStencilView *depthStencilView;
 	ID3D10RasterizerState *rasterizerState;
 
+	int createTextureRGBA(void *data, int tw, int th,
+		int genmips, ID3D10ShaderResourceView **srv);
+	int createBuffer(D3D10_BIND_FLAG flag,
+		void *data, int sz, ID3D10Buffer **buf);
+	int createVtxBuffer(void *data, int sz, ID3D10Buffer **buf) {
+		return createBuffer(D3D10_BIND_VERTEX_BUFFER, data, sz, buf);
+	}
+	int createIdxBuffer(void *data, int sz, ID3D10Buffer **buf) {
+		return createBuffer(D3D10_BIND_VERTEX_BUFFER, data, sz, buf);
+	}
+
 private:
 	int initD3D(void);
 	HWND hwnd;
@@ -61,5 +72,6 @@ App *createApp(void);
 
 void printx(const char *fmt, ...);
 void printmtx(D3DXMATRIX *m, const char *name);
+int error(const char *fmt, ...);
 
 #endif

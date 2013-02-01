@@ -195,6 +195,84 @@ int App::initD3D(void) {
 	return S_OK;
 }
 
+// ----
+
+
+int App::createTextureRGBA(
+	void *data, int tw, int th, int genmips,
+	ID3D10ShaderResourceView **srv) {
+	int stride = tw * 4;
+	int size = stride * th;
+	HRESULT hr;
+	ID3D10Texture2D *texture;
+
+	D3D10_TEXTURE2D_DESC txd;
+	txd.Width = tw;
+	txd.Height = th;
+	txd.MipLevels = genmips ? 0 : 1;
+	txd.ArraySize = 1;
+	txd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	txd.SampleDesc.Count = 1;
+	txd.SampleDesc.Quality = 0;
+	txd.Usage = D3D10_USAGE_DEFAULT;
+	txd.BindFlags = D3D10_BIND_SHADER_RESOURCE;
+	if (genmips)
+		txd.BindFlags |= D3D10_BIND_RENDER_TARGET;
+	txd.CPUAccessFlags = 0; // no cpu access
+	txd.MiscFlags = genmips ? D3D10_RESOURCE_MISC_GENERATE_MIPS : 0;
+
+	D3D10_SUBRESOURCE_DATA idata;
+	idata.pSysMem = data;
+	idata.SysMemPitch = stride;
+	idata.SysMemSlicePitch = size;
+
+	hr = device->CreateTexture2D(&txd, genmips ? NULL : &idata, &texture);
+	if (FAILED(hr))
+		return error("failed to create texture 0x%08x",hr);
+
+	D3D10_SHADER_RESOURCE_VIEW_DESC srvd;
+	srvd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	srvd.ViewDimension = D3D10_SRV_DIMENSION_TEXTURE2D;
+	srvd.Texture2D.MipLevels = genmips ? -1 : 1;
+	srvd.Texture2D.MostDetailedMip = 0;
+	hr = device->CreateShaderResourceView(texture, &srvd, srv);
+	if (FAILED(hr)) {
+		texture->Release();
+		return error("failed to create shader resource view 0x%08x",hr);
+	}
+
+	if (genmips) {
+		device->UpdateSubresource(texture, 0, NULL, data, stride, size);
+		device->GenerateMips(*srv);
+	}
+
+	// TODO: track and release textures
+	return 0;
+}
+
+int App::createBuffer(D3D10_BIND_FLAG flag,
+	void *data, int sz, ID3D10Buffer **buf) {
+	HRESULT hr;
+	
+	D3D10_BUFFER_DESC bd;
+	bd.Usage = D3D10_USAGE_DEFAULT;
+	bd.ByteWidth = sz;
+	bd.BindFlags = flag;
+	bd.CPUAccessFlags = 0;
+	bd.MiscFlags = 0;
+
+	D3D10_SUBRESOURCE_DATA idata;
+	idata.pSysMem = data;
+	hr = device->CreateBuffer(&bd, &idata, buf);
+	if (FAILED(hr))
+		return error("create buffer failed 0x%08x", hr);
+
+	return 0;
+}
+
+
+// ----
+
 void printx(const char *fmt, ...) {
 #if DEBUG || _DEBUG
 	char buf[128];
@@ -218,4 +296,19 @@ void printmtx(D3DXMATRIX *m, const char *name) {
 	printx("| %8.4f %8.4f %8.4f %8.4f |\n",
 		m->_41, m->_42, m->_43, m->_44);
 #endif
+}
+
+int error(const char *fmt, ...) {
+	char buf[128];
+	va_list ap;
+	va_start(ap, fmt);
+	vsnprintf(buf, sizeof(buf), fmt, ap);
+	va_end(ap);
+	buf[127] = 0;
+#if _DEBUG
+	printx("ERROR: %s\n", buf);
+#else
+	MessageBox(NULL, buf, "Error", MB_OK);
+#endif
+	return -1;
 }
