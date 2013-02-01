@@ -22,7 +22,6 @@
 #pragma warning ( disable : 4005 )
 
 #include <d3d10.h>
-#include <d3dx10.h>
 
 #ifdef _DEBUG
 #define DEVICE_DEBUG_FLAGS D3D10_CREATE_DEVICE_DEBUG
@@ -36,14 +35,17 @@ class App {
 public:
 	App();
 	virtual ~App();
+
 	virtual int init(void) = 0;
 	virtual void render(void) = 0;
+	virtual void release(void) {};
 
 	int start(HINSTANCE hInstance, int nCmdShow);
-
+	void stop(void);
 protected:
 	int width;
 	int height;
+
 	ID3D10Device *device;
 	IDXGISwapChain *swap;
 	ID3D10RenderTargetView *target;
@@ -61,17 +63,23 @@ protected:
 	int createIdxBuffer(void *data, int sz, ID3D10Buffer **buf) {
 		return createBuffer(D3D10_BIND_VERTEX_BUFFER, data, sz, buf);
 	}
-
+	int createConstantBuffer(int sz, ID3D10Buffer **buf) {
+		return createBuffer(D3D10_BIND_CONSTANT_BUFFER, NULL, sz, buf);
+	}
+	int compileVertexShader(const char *fn, ID3D10VertexShader **vs, ID3D10Blob **data);
+	int compilePixelShader(const char *fn, ID3D10PixelShader **ps, ID3D10Blob **data);
 private:
 	int initD3D(void);
 	HWND hwnd;
 	HINSTANCE hinstance;
 };
 
+int compileShader(const char *fn, const char *profile, ID3D10Blob **shader);
+
 App *createApp(void);
 
 void printx(const char *fmt, ...);
-void printmtx(D3DXMATRIX *m, const char *name);
+void printmtx(float *m, const char *name);
 int error(const char *fmt, ...);
 
 #endif

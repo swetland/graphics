@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+#include "util.h"
 #include "app.h"
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
@@ -24,13 +25,21 @@ App::App() : width(800), height(600), device(NULL), target(NULL), swap(NULL) {
 }
 
 App::~App() {
+}
+
+void App::stop(void) {
 	if (device) device->ClearState();
+
+	release();
+
 	if (rasterizerState) rasterizerState->Release();
 	if (depthStencilView) depthStencilView->Release();
 	if (depthStencil) depthStencil->Release();
 	if (target) target->Release();
 	if (swap) swap->Release();
 	if (device) device->Release();
+
+	printx("-- goodbye --\n");
 }
 
 static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
@@ -66,6 +75,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		}
 	}
 
+	app->stop();
 	delete app;
 	return (int) msg.wParam;
 }
@@ -197,7 +207,6 @@ int App::initD3D(void) {
 
 // ----
 
-
 int App::createTextureRGBA(
 	void *data, int tw, int th, int genmips,
 	ID3D10ShaderResourceView **srv) {
@@ -263,10 +272,69 @@ int App::createBuffer(D3D10_BIND_FLAG flag,
 
 	D3D10_SUBRESOURCE_DATA idata;
 	idata.pSysMem = data;
-	hr = device->CreateBuffer(&bd, &idata, buf);
+	hr = device->CreateBuffer(&bd, data ? &idata : NULL, buf);
 	if (FAILED(hr))
 		return error("create buffer failed 0x%08x", hr);
 
+	return 0;
+}
+
+int compileShader(const char *fn, const char *profile, ID3D10Blob **shader) {
+	HRESULT hr;
+	ID3D10Blob *errors = NULL;
+	void *data;
+	unsigned dsz;
+
+	if (!(data = load_file(fn, &dsz)))
+		return error("cannot load shader");
+
+	hr = D3D10CompileShader((char*) data, dsz, fn,
+		NULL, NULL, "main", profile,
+		D3D10_SHADER_ENABLE_STRICTNESS, // | D3D10_SHADER_DEBUG,
+		shader, &errors);
+
+	free(data);
+
+	if (errors) {
+		printx("--- error compiling '%s' ---\n", fn);
+		OutputDebugString((char*) errors->GetBufferPointer());
+		errors->Release();
+		return -1;
+	}
+	if (FAILED(hr))
+		return error("cannot compile shader 0x%08x", hr);
+
+	printx("Compiled '%s' to %d bytes\n", fn, (*shader)->GetBufferSize());
+	return 0;
+}
+
+int App::compileVertexShader(const char *fn, ID3D10VertexShader **vs, ID3D10Blob **_data) {
+	ID3D10Blob *data = NULL;
+	HRESULT hr;
+	if (compileShader(fn, "vs_4_0", &data))
+		return -1;
+	hr = device->CreateVertexShader(data->GetBufferPointer(), data->GetBufferSize(), vs);
+	if (_data)
+		*_data = data;
+	else
+		data->Release();
+	if (FAILED(hr))
+		return error("failed to create shader '%s' 0x%08x", fn, hr);
+	return 0;
+}
+
+int App::compilePixelShader(const char *fn, ID3D10PixelShader **ps, ID3D10Blob **_data) {
+	ID3D10Blob *data = NULL;
+	HRESULT hr;
+	if (compileShader(fn, "ps_4_0", &data))
+		return -1;
+	hr = device->CreatePixelShader(data->GetBufferPointer(), data->GetBufferSize(), ps);
+	if (_data)
+		*_data = data;
+	else
+		data->Release();
+	if (FAILED(hr))
+		return error("failed to create shader '%s' 0x%08x", fn, hr);
 	return 0;
 }
 
@@ -285,16 +353,12 @@ void printx(const char *fmt, ...) {
 #endif
 }
 
-void printmtx(D3DXMATRIX *m, const char *name) {
+void printmtx(float *m, const char *name) {
 #if DEBUG || _DEBUG
-	printx("| %8.4f %8.4f %8.4f %8.4f | \"%s\"\n",
-		m->_11, m->_12, m->_13, m->_14, name);
-	printx("| %8.4f %8.4f %8.4f %8.4f |\n",
-		m->_21, m->_22, m->_23, m->_24);
-	printx("| %8.4f %8.4f %8.4f %8.4f |\n",
-		m->_31, m->_32, m->_33, m->_34);
-	printx("| %8.4f %8.4f %8.4f %8.4f |\n",
-		m->_41, m->_42, m->_43, m->_44);
+	printx("| %8.4f %8.4f %8.4f %8.4f | \"%s\"\n", m[0], m[1], m[2], m[3], name);
+	printx("| %8.4f %8.4f %8.4f %8.4f |\n", m[4], m[5], m[6], m[7]);
+	printx("| %8.4f %8.4f %8.4f %8.4f |\n", m[8], m[9], m[10], m[11]);
+	printx("| %8.4f %8.4f %8.4f %8.4f |\n", m[12], m[13], m[14], m[15]);
 #endif
 }
 
