@@ -70,6 +70,10 @@ struct obj *load_obj(const char *fn) {
 		} else if (!strncmp(buf, "vt ", 3)) {
 			v2 t;
 			sscanf(buf + 3, "%f %f", &t.u, &t.v);
+
+			/* TODO: make parameter -- inverting V for DX... */
+			t.v = 1.0 - t.v;
+
 			o->texcoords.push_back(t);
 		} else if (!strncmp(buf, "f ", 2)) {
 			i3 t;
