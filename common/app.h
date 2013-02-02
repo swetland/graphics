@@ -42,15 +42,17 @@ public:
 
 	int start(HINSTANCE hInstance, int nCmdShow);
 	void stop(void);
+	int reconfigure(int init);
+
 protected:
 	int width;
 	int height;
 
 	ID3D10Device *device;
-	IDXGISwapChain *swap;
-	ID3D10RenderTargetView *target;
-	ID3D10Texture2D *depthStencil;
-	ID3D10DepthStencilView *depthStencilView;
+	IDXGISwapChain *swapchain;
+	ID3D10RenderTargetView *targetView;
+	ID3D10Texture2D *depthBuffer;
+	ID3D10DepthStencilView *depthView;
 	ID3D10RasterizerState *rasterizerState;
 
 	int createTextureRGBA(void *data, int tw, int th,

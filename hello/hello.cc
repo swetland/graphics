@@ -150,8 +150,8 @@ void TestApp::render(void) {
 	t = (timeCur - timeStart) / 1000.0f;
 
 	float rgba[4] = { 0.0f, 0.125f, 0.3f, 1.0f }; 
-	device->ClearRenderTargetView(target, rgba);
-	device->ClearDepthStencilView(depthStencilView, D3D10_CLEAR_DEPTH, 1.0f, 0 );
+	device->ClearRenderTargetView(targetView, rgba);
+	device->ClearDepthStencilView(depthView, D3D10_CLEAR_DEPTH, 1.0f, 0 );
 
 	UINT stride = 32;
 	UINT offset = 0;
@@ -177,7 +177,7 @@ void TestApp::render(void) {
 	device->UpdateSubresource(cbuf, 0, NULL, &cb0, 0, 0);
 	device->DrawIndexedInstanced(m->icount, 8*8*8, 0, 0, 0);
 
-	swap->Present(0, 0);
+	swapchain->Present(0, 0);
 }
 
 App *createApp(void) {

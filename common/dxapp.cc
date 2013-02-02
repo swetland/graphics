@@ -21,7 +21,9 @@
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
-App::App() : width(800), height(600), device(NULL), target(NULL), swap(NULL) {
+App::App() : width(800), height(600),
+	device(NULL), targetView(NULL), depthView(NULL),
+	swapchain(NULL), rasterizerState(NULL) {
 }
 
 App::~App() {
@@ -33,14 +35,17 @@ void App::stop(void) {
 	release();
 
 	if (rasterizerState) rasterizerState->Release();
-	if (depthStencilView) depthStencilView->Release();
-	if (depthStencil) depthStencil->Release();
-	if (target) target->Release();
-	if (swap) swap->Release();
+	if (depthView) depthView->Release();
+	if (depthBuffer) depthBuffer->Release();
+	if (targetView) targetView->Release();
+	if (swapchain) swapchain->Release();
 	if (device) device->Release();
 
 	printx("-- goodbye --\n");
 }
+
+static App *app;
+static int moving = 0;
 
 static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	PAINTSTRUCT ps;
@@ -53,6 +58,29 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM l
 	case WM_DESTROY:
 		PostQuitMessage( 0 );
 		break;
+	case WM_SIZE:
+#if 0
+		if (wParam == SIZE_MINIMIZED) printx("win: minimized\n");
+		else if (wParam == SIZE_MAXIMIZED) printx("win: maximized\n");
+		else if (wParam == SIZE_RESTORED) printx("win: restored\n");
+		else printx("win: sized %d??\n", wParam);
+#endif
+		if (!moving)
+			app->reconfigure(0);
+		break;
+	case WM_ENTERSIZEMOVE:
+		moving = 1;
+		break;
+	case WM_EXITSIZEMOVE:
+		moving = 0;
+		app->reconfigure(0);
+		break;
+	case WM_MOUSEMOVE:
+//		printx("win: mouse!\n");
+		break;
+	case WM_ACTIVATEAPP:
+		printx("win: activate: %d\n", wParam);
+		break;
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
@@ -60,7 +88,7 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM l
 }
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow) {
-	App *app = createApp();
+	app = createApp();
 
 	if (app->start(hInstance, nCmdShow))
 		return 0;
@@ -74,7 +102,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 			app->render();
 		}
 	}
-
 	app->stop();
 	delete app;
 	return (int) msg.wParam;
@@ -114,6 +141,91 @@ int App::start(HINSTANCE hInstance, int nCmdShow) {
 	return 0;
 }
 
+int App::reconfigure(int init) {
+	HRESULT hr;
+	int w, h;
+
+	if (init) {
+		printx("reconfigure: init\n");
+	} else {
+		RECT r;
+		GetClientRect(hwnd, &r);
+		w = r.right - r.left;
+		h = r.bottom - r.top;
+
+		// TODO: handle minimized state
+		if (w < 320) w = 320;
+		if (h < 240) h = 240;
+
+		if ((width == w) && (height == h))
+			return 0;
+
+		width = w;
+		height = h;
+		if (targetView) {
+			targetView->Release();
+			targetView = NULL;
+		}
+		if (depthView) {
+			depthView->Release();
+			depthView = NULL;
+		}
+		if (depthBuffer) {
+			depthBuffer->Release();
+			depthBuffer = NULL;
+		}
+
+		hr = swapchain->ResizeBuffers(1, width, height, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
+		if (FAILED(hr))
+			return -1;
+	}
+
+	ID3D10Texture2D *buffer;
+	hr = swapchain->GetBuffer(0, __uuidof(ID3D10Texture2D), (LPVOID*) &buffer);
+	if (FAILED(hr)) printx("OOPS\n");
+	hr = device->CreateRenderTargetView(buffer, NULL, &targetView);
+	buffer->Release();
+	if (FAILED(hr))
+		return -1;
+
+	D3D10_TEXTURE2D_DESC td;
+	td.Width = width;
+	td.Height = height;
+	td.MipLevels = 1;
+	td.ArraySize = 1;
+	td.Format = DXGI_FORMAT_D32_FLOAT;
+	td.SampleDesc.Count = 1;
+	td.SampleDesc.Quality = 0;
+	td.Usage = D3D10_USAGE_DEFAULT;
+	td.BindFlags = D3D10_BIND_DEPTH_STENCIL;
+	td.CPUAccessFlags = 0;
+	td.MiscFlags = 0;
+	hr = device->CreateTexture2D(&td, NULL, &depthBuffer);
+	if (FAILED(hr))
+		return -1;
+
+	D3D10_DEPTH_STENCIL_VIEW_DESC dsvd;
+	dsvd.Format = td.Format;
+	dsvd.ViewDimension = D3D10_DSV_DIMENSION_TEXTURE2D;
+	dsvd.Texture2D.MipSlice = 0;
+	hr = device->CreateDepthStencilView(depthBuffer, &dsvd, &depthView);
+	if (FAILED(hr))
+		return -1;
+
+	D3D10_VIEWPORT vp;
+	vp.Width = width;
+	vp.Height = height;
+	vp.MinDepth = 0.0f;
+	vp.MaxDepth = 1.0f;
+	vp.TopLeftX = 0;
+	vp.TopLeftY = 0;
+	device->RSSetViewports(1, &vp);
+
+	device->OMSetRenderTargets(1, &targetView, depthView);
+
+	return 0;
+}
+
 int App::initD3D(void) {
 	HRESULT hr;
 	RECT rc;
@@ -138,51 +250,12 @@ int App::initD3D(void) {
 
 	hr = D3D10CreateDeviceAndSwapChain(NULL,
 		D3D10_DRIVER_TYPE_HARDWARE, NULL, DEVICE_DEBUG_FLAGS,
-		D3D10_SDK_VERSION, &sc, &swap, &device);
+		D3D10_SDK_VERSION, &sc, &swapchain, &device);
 	if (FAILED(hr))
 		return -1;
 
-	ID3D10Texture2D *buffer;
-	hr = swap->GetBuffer(0, __uuidof(ID3D10Texture2D), (LPVOID*) &buffer);
-	if (FAILED(hr))
-		return hr;
-	hr = device->CreateRenderTargetView(buffer, NULL, &target);
-	buffer->Release();
-	if (FAILED(hr))
-		return hr;
-
-	D3D10_TEXTURE2D_DESC td;
-	td.Width = width;
-	td.Height = height;
-	td.MipLevels = 1;
-	td.ArraySize = 1;
-	td.Format = DXGI_FORMAT_D32_FLOAT;
-	td.SampleDesc.Count = 1;
-	td.SampleDesc.Quality = 0;
-	td.Usage = D3D10_USAGE_DEFAULT;
-	td.BindFlags = D3D10_BIND_DEPTH_STENCIL;
-	td.CPUAccessFlags = 0;
-	td.MiscFlags = 0;
-	hr = device->CreateTexture2D(&td, NULL, &depthStencil);
-	if (FAILED(hr))
+	if (reconfigure(1))
 		return -1;
-
-	D3D10_DEPTH_STENCIL_VIEW_DESC dsvd;
-	dsvd.Format = td.Format;
-	dsvd.ViewDimension = D3D10_DSV_DIMENSION_TEXTURE2D;
-	dsvd.Texture2D.MipSlice = 0;
-	hr = device->CreateDepthStencilView(depthStencil, &dsvd, &depthStencilView);
-	if (FAILED(hr))
-		return -1;
-
-	D3D10_VIEWPORT vp;
-	vp.Width = width;
-	vp.Height = height;
-	vp.MinDepth = 0.0f;
-	vp.MaxDepth = 1.0f;
-	vp.TopLeftX = 0;
-	vp.TopLeftY = 0;
-	device->RSSetViewports(1, &vp);
 
 	D3D10_RASTERIZER_DESC rd;
 	rd.FillMode = D3D10_FILL_SOLID;
@@ -200,8 +273,6 @@ int App::initD3D(void) {
 		return -1;
 	device->RSSetState(rasterizerState);
 
-	device->OMSetRenderTargets(1, &target, depthStencilView);
-	
 	return S_OK;
 }
 
