@@ -24,7 +24,19 @@ static D3D10_INPUT_ELEMENT_DESC obj_layout[] = {
 	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,  0, D3D10_INPUT_PER_VERTEX_DATA, 0 },
 	{ "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D10_INPUT_PER_VERTEX_DATA, 0 },
 	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, 24, D3D10_INPUT_PER_VERTEX_DATA, 0 },
+	{ "LOCATION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 1,  0, D3D10_INPUT_PER_INSTANCE_DATA, 1 },
 };
+
+static float locationx[] = {
+	0, 0, 0,
+	-2, 0, 0,
+	-4, 0, 0,
+	2, 0, 0,
+	4, 0, 0,
+};
+
+static float location[8*8*8*3];
+static float lcount = 0;
 
 class TestApp : public App {
 public:
@@ -40,6 +52,7 @@ private:
 	ID3D10InputLayout *layout;
 	ID3D10Buffer *vtxbuf;
 	ID3D10Buffer *idxbuf;
+	ID3D10Buffer *ibuf;
 	ID3D10Buffer *cbuf;
 
 	ID3D10PixelShader *PS;
@@ -88,11 +101,28 @@ int TestApp::init(void) {
 	device->VSSetShader(VS);
 	device->PSSetShader(PS);
 
-	if (!(m = load_wavefront_obj("cube.obj")))
+	int x, y, z, n = 0;
+	for (z = -4; z < 4; z++) {
+		for (y = -4; y < 4; y++) {
+			for (x = -4; x < 4; x++) {
+				location[n+0] = (float) x;
+				location[n+1] = (float) y;
+				location[n+2] = (float) z;
+				n += 3;
+			}
+		}
+	}
+	printx("Wrote %d locations\n", n/3);
+		
+	if (!(m = load_wavefront_obj("unitcubeoid.obj")))
 		return error("cannot load model");
+	printx("Object Loaded. %d vertices, %d indices.\n", m->vcount, m->icount);
+
 	if (createVtxBuffer(m->vdata, 32 * m->vcount, &vtxbuf))
 		return -1;
 	if (createIdxBuffer(m->idx, sizeof(short) * m->icount, &idxbuf))
+		return -1;
+	if (createVtxBuffer(location, 8*8*8*12, &ibuf))
 		return -1;
 
 	if (!(data = load_png_rgba("cube-texture.png", &dw, &dh, 0)))
@@ -101,12 +131,12 @@ int TestApp::init(void) {
 		return -1;
 	free(data);
 
-	if (createConstantBuffer(16 * 4, &cbuf))
+	if (createConstantBuffer(32 * 4, &cbuf))
 		return -1;
 	device->VSSetConstantBuffers(0, 1, &cbuf);
 	device->PSSetShaderResources(0, 1, &rvShader0);
 
-	proj.setPerspective(M_PI * 0.5, width / (float) height, 0.1f, 100.0f);
+	proj.setPerspective(D2R(90.0), width / (float) height, 0.1f, 100.0f);
 
 	return 0;
 }
@@ -127,21 +157,25 @@ void TestApp::render(void) {
 	UINT offset = 0;
 	device->IASetInputLayout(layout);
 	device->IASetVertexBuffers(0, 1, &vtxbuf, &stride, &offset);
+	stride = 12;
+	offset = 0;
+	device->IASetVertexBuffers(1, 1, &ibuf, &stride, &offset);
 	device->IASetIndexBuffer(idxbuf, DXGI_FORMAT_R16_UINT, 0);
 	device->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	mat4 world, view, mvp, tmp;
+	struct {
+		mat4 mvp;
+		mat4 mv;
+	} cb0;
+	mat4 world, view, tmp;
 
-	view.identity().rotateX(D2R(25)).translate(0, 0, -10);
-	world.identity().rotateY(t);
-	mvp = world * view * proj;
-	device->UpdateSubresource(cbuf, 0, NULL, mvp.data(), 0, 0);
-	device->DrawIndexed(m->icount, 0, 0);
-
-	world.identity().rotateY(t).translate(-5,0,0).rotateY(t);
-	mvp = world * view * proj;
-	device->UpdateSubresource(cbuf, 0, NULL, mvp.data(), 0, 0);
-	device->DrawIndexed(m->icount, 0, 0);
+	view.identity().rotateX(D2R(10)).rotateY(t).translate(0, 0, -10);
+	view.identity().translate(0, 0, -10);
+	world.identity().translate(0.5, 0.5, 0.5).rotateY(t);
+	cb0.mvp = world * view * proj;
+	cb0.mv = world * view;
+	device->UpdateSubresource(cbuf, 0, NULL, &cb0, 0, 0);
+	device->DrawIndexedInstanced(m->icount, 8*8*8, 0, 0, 0);
 
 	swap->Present(0, 0);
 }
