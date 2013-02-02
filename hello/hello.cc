@@ -35,8 +35,13 @@ static float locationx[] = {
 	4, 0, 0,
 };
 
-static char location[8*8*8*4];
-static float lcount = 0;
+#define SZ 32
+#define SZh (SZ / 2)
+#define SZe (SZ * SZ * SZ)
+#define SZb (SZe * 4)
+
+static char location[SZb];
+static int lcount = 0;
 
 class TestApp : public App {
 public:
@@ -101,10 +106,18 @@ int TestApp::init(void) {
 	device->VSSetShader(VS);
 	device->PSSetShader(PS);
 
+	float scale = SZh;
 	int x, y, z, n = 0;
-	for (z = -4; z < 4; z++) {
-		for (y = -4; y < 4; y++) {
-			for (x = -4; x < 4; x++) {
+	for (z = -SZh; z < SZh; z++) {
+		for (x = -SZh; x < SZh; x++) {
+			for (y = -SZh; y < SZh; y++) {
+#if 0
+				if (snoise(x/scale,y/scale,z/scale) > 0.1)
+					continue;
+#else
+				if (snoise(x/scale,z/scale) < y/scale)
+					continue;
+#endif
 				location[n+0] = x;
 				location[n+1] = y;
 				location[n+2] = z;
@@ -113,7 +126,8 @@ int TestApp::init(void) {
 			}
 		}
 	}
-	printx("Wrote %d locations\n", n/3);
+	lcount = n / 4;
+	printx("Wrote %d locations\n", lcount);
 		
 	if (!(m = load_wavefront_obj("unitcubeoid.obj")))
 		return error("cannot load model");
@@ -123,21 +137,22 @@ int TestApp::init(void) {
 		return -1;
 	if (createIdxBuffer(m->idx, sizeof(short) * m->icount, &idxbuf))
 		return -1;
-	if (createVtxBuffer(location, 8*8*8*4, &ibuf))
+	if (createVtxBuffer(location, lcount*4, &ibuf))
 		return -1;
 
+#if 0
 	if (!(data = load_png_rgba("cube-texture.png", &dw, &dh, 0)))
 		return error("cannot load texture");
 	if (createTextureRGBA(data, dw, dh, 1, &rvShader0))
 		return -1;
 	free(data);
-
+#endif
 	if (createConstantBuffer(32 * 4, &cbuf))
 		return -1;
 	device->VSSetConstantBuffers(0, 1, &cbuf);
 	device->PSSetShaderResources(0, 1, &rvShader0);
 
-	proj.setPerspective(D2R(90.0), width / (float) height, 0.1f, 100.0f);
+	proj.setPerspective(D2R(90.0), width / (float) height, 0.1f, 250.0f);
 
 	return 0;
 }
@@ -171,12 +186,12 @@ void TestApp::render(void) {
 	mat4 world, view, tmp;
 
 	view.identity().rotateX(D2R(10)).rotateY(t).translate(0, 0, -10);
-	view.identity().translate(0, 0, -10);
+	view.identity().translate(0, 0, -SZ);
 	world.identity().translate(0.5, 0.5, 0.5).rotateY(t);
 	cb0.mvp = world * view * proj;
 	cb0.mv = world * view;
 	device->UpdateSubresource(cbuf, 0, NULL, &cb0, 0, 0);
-	device->DrawIndexedInstanced(m->icount, 8*8*8, 0, 0, 0);
+	device->DrawIndexedInstanced(m->icount, lcount, 0, 0, 0);
 
 	swapchain->Present(0, 0);
 }
