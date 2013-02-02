@@ -193,7 +193,8 @@ int App::reconfigure(int init) {
 	td.Height = height;
 	td.MipLevels = 1;
 	td.ArraySize = 1;
-	td.Format = DXGI_FORMAT_D32_FLOAT;
+//	td.Format = DXGI_FORMAT_D32_FLOAT;
+	td.Format = DXGI_FORMAT_D24_UNORM_S8_UINT; // NVIDIA suggested
 	td.SampleDesc.Count = 1;
 	td.SampleDesc.Quality = 0;
 	td.Usage = D3D10_USAGE_DEFAULT;

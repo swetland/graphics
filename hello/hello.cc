@@ -24,7 +24,7 @@ static D3D10_INPUT_ELEMENT_DESC obj_layout[] = {
 	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,  0, D3D10_INPUT_PER_VERTEX_DATA, 0 },
 	{ "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D10_INPUT_PER_VERTEX_DATA, 0 },
 	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, 24, D3D10_INPUT_PER_VERTEX_DATA, 0 },
-	{ "LOCATION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 1,  0, D3D10_INPUT_PER_INSTANCE_DATA, 1 },
+	{ "LOCATION", 0, DXGI_FORMAT_R8G8B8A8_SNORM, 1,  0, D3D10_INPUT_PER_INSTANCE_DATA, 1 },
 };
 
 static float locationx[] = {
@@ -35,7 +35,7 @@ static float locationx[] = {
 	4, 0, 0,
 };
 
-static float location[8*8*8*3];
+static char location[8*8*8*4];
 static float lcount = 0;
 
 class TestApp : public App {
@@ -105,10 +105,11 @@ int TestApp::init(void) {
 	for (z = -4; z < 4; z++) {
 		for (y = -4; y < 4; y++) {
 			for (x = -4; x < 4; x++) {
-				location[n+0] = (float) x;
-				location[n+1] = (float) y;
-				location[n+2] = (float) z;
-				n += 3;
+				location[n+0] = x;
+				location[n+1] = y;
+				location[n+2] = z;
+				location[n+3] = 1;
+				n += 4;
 			}
 		}
 	}
@@ -122,7 +123,7 @@ int TestApp::init(void) {
 		return -1;
 	if (createIdxBuffer(m->idx, sizeof(short) * m->icount, &idxbuf))
 		return -1;
-	if (createVtxBuffer(location, 8*8*8*12, &ibuf))
+	if (createVtxBuffer(location, 8*8*8*4, &ibuf))
 		return -1;
 
 	if (!(data = load_png_rgba("cube-texture.png", &dw, &dh, 0)))
@@ -157,7 +158,7 @@ void TestApp::render(void) {
 	UINT offset = 0;
 	device->IASetInputLayout(layout);
 	device->IASetVertexBuffers(0, 1, &vtxbuf, &stride, &offset);
-	stride = 12;
+	stride = 4;
 	offset = 0;
 	device->IASetVertexBuffers(1, 1, &ibuf, &stride, &offset);
 	device->IASetIndexBuffer(idxbuf, DXGI_FORMAT_R16_UINT, 0);

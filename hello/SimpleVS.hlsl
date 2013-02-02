@@ -14,10 +14,12 @@ VS_OUTPUT main(
 	float4 Position : POSITION,
 	float4 Normal	: NORMAL,
 	float2 TexCoord : TEXCOORD,
-	float4 Location : LOCATION) {
+	float4 Location : LOCATION
+	) {
 
 	VS_OUTPUT output = (VS_OUTPUT) 0;
-	Position.xyz += Location.xyz;
+
+	Position.xyz += Location.xyz * float3(127,127,127);
 
 	float3 mvPosition = mul(MV, Position).xyz;
 	float3 mvNormal = mul(MV, float4(Normal.xyz,0.0)).xyz;
