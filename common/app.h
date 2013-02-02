@@ -39,6 +39,7 @@ public:
 	virtual int init(void) = 0;
 	virtual void render(void) = 0;
 	virtual void release(void) {};
+	virtual void mouse(int x, int y, int buttons) {};
 
 	int start(HINSTANCE hInstance, int nCmdShow);
 	void stop(void);

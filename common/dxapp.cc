@@ -46,7 +46,7 @@ void App::stop(void) {
 
 static App *app;
 static int moving = 0;
-
+static int frame = 0;
 static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	PAINTSTRUCT ps;
 	HDC hdc;
@@ -75,9 +75,25 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM l
 		moving = 0;
 		app->reconfigure(0);
 		break;
-	case WM_MOUSEMOVE:
-//		printx("win: mouse!\n");
+	case WM_LBUTTONDOWN:
+	case WM_LBUTTONUP:
+	case WM_RBUTTONDOWN:
+	case WM_RBUTTONUP: {
+		int x = (short) LOWORD(lParam);
+		int y = (short) HIWORD(lParam);
+		int b = LOWORD(wParam);
+		app->mouse(x, y, b & 3);
 		break;
+	}
+	case WM_MOUSEMOVE: {
+		int b = LOWORD(wParam);
+		if (b & 3) {
+			int x = (short) LOWORD(lParam);
+			int y = (short) HIWORD(lParam);
+			app->mouse(x, y, b & 3);
+		}
+		break;
+	}
 	case WM_ACTIVATEAPP:
 		printx("win: activate: %d\n", wParam);
 		break;
@@ -100,6 +116,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 			DispatchMessage(&msg);
 		} else {
 			app->render();
+			frame++;
 		}
 	}
 	app->stop();
