@@ -61,7 +61,7 @@ protected:
 		return createBuffer(D3D10_BIND_VERTEX_BUFFER, data, sz, buf);
 	}
 	int createIdxBuffer(void *data, int sz, ID3D10Buffer **buf) {
-		return createBuffer(D3D10_BIND_VERTEX_BUFFER, data, sz, buf);
+		return createBuffer(D3D10_BIND_INDEX_BUFFER, data, sz, buf);
 	}
 	int createConstantBuffer(int sz, ID3D10Buffer **buf) {
 		return createBuffer(D3D10_BIND_CONSTANT_BUFFER, NULL, sz, buf);
