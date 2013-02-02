@@ -9,6 +9,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpng-1.2.50", "libpng-1.2
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hello", "hello\hello.vcxproj", "{812CD397-998F-4D9C-9BF3-1549F360EABE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F5A10B0A-0EC0-4A76-B4DD-748CA4047E50} = {F5A10B0A-0EC0-4A76-B4DD-748CA4047E50}
+		{9A238D95-47DB-4254-A680-F100AA9E755C} = {9A238D95-47DB-4254-A680-F100AA9E755C}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
