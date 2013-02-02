@@ -35,7 +35,7 @@ static float locationx[] = {
 	4, 0, 0,
 };
 
-#define SZ 32
+#define SZ 64
 #define SZh (SZ / 2)
 #define SZe (SZ * SZ * SZ)
 #define SZb (SZe * 4)
@@ -49,7 +49,7 @@ public:
 	int init(void);
 	void render(void);
 	void release(void);
-
+	void mouse(int x, int y, int b);
 private:
 	float t;
 	DWORD timeStart;
@@ -68,11 +68,12 @@ private:
 	ID3D10ShaderResourceView *rvShader0;
 
 	mat4 proj;
-
+	int lx, ly, lb;
+	float rx, ry;
 	struct model *m;
 };
 
-TestApp::TestApp() : App(), t(0.0f), timeStart(0),
+TestApp::TestApp() : App(), t(0.0f), timeStart(0), lb(0), rx(0), ry(0),
 	layout(NULL), vtxbuf(NULL), idxbuf(NULL), cbuf(NULL),
 	PS(NULL), VS(NULL), PSbc(NULL), VSbc(NULL), rvShader0(NULL) {
 }
@@ -111,11 +112,18 @@ int TestApp::init(void) {
 	for (z = -SZh; z < SZh; z++) {
 		for (x = -SZh; x < SZh; x++) {
 			for (y = -SZh; y < SZh; y++) {
+				float fx = x/scale * 0.50;
+				float fy = y/scale * 0.50;
+				float fz = z/scale * 0.50;
 #if 0
-				if (snoise(x/scale,y/scale,z/scale) > 0.1)
+				if (snoise(fx,fy,fz) > 0.1)
 					continue;
 #else
-				if (snoise(x/scale,z/scale) < y/scale)
+				float sn =
+					snoise(fx,fz) +
+					snoise(fx*2.0,fz*2.0) / 4.0 +
+					snoise(fx*4.0,fz*4.0) / 8.0;
+				if (sn < y/scale)
 					continue;
 #endif
 				location[n+0] = x;
@@ -157,6 +165,24 @@ int TestApp::init(void) {
 	return 0;
 }
 
+static float rate = 90.0;
+
+void TestApp::mouse(int x, int y, int b) {
+	if (b & lb & 1) {
+		float dx = ((float) (x - lx)) / ((float) width);
+		float dy = ((float) (y - ly)) / ((float) height);
+		ry += dx * rate;
+		rx += dy * rate;
+		if (rx < 0.0) rx += 360.0;
+		else if (rx > 360.0) rx -= 360.0;
+		if (ry < 0.0) ry += 360.0;
+		else if (ry > 360.0) ry -= 360.0;
+	}
+	lb = b;
+	lx = x;
+	ly = y;
+}
+
 void TestApp::render(void) {
 	static float t = 0.0f;
         static DWORD timeStart = 0;
@@ -187,13 +213,13 @@ void TestApp::render(void) {
 
 	view.identity().rotateX(D2R(10)).rotateY(t).translate(0, 0, -10);
 	view.identity().translate(0, 0, -SZ);
-	world.identity().translate(0.5, 0.5, 0.5).rotateY(t);
+	world.identity().translate(0.5, 0.5, 0.5).rotateY(D2R(ry)).rotateX(D2R(rx));
 	cb0.mvp = world * view * proj;
 	cb0.mv = world * view;
 	device->UpdateSubresource(cbuf, 0, NULL, &cb0, 0, 0);
 	device->DrawIndexedInstanced(m->icount, lcount, 0, 0, 0);
 
-	swapchain->Present(0, 0);
+	swapchain->Present(1, 0);
 }
 
 App *createApp(void) {
