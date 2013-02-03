@@ -24,7 +24,8 @@ VS_OUTPUT main(
 	float3 mvPosition = mul(MV, Position).xyz;
 	float3 mvNormal = mul(MV, float4(Normal.xyz,0.0)).xyz;
 
-	float3 lightVec = normalize(float3(10,20,25) - float3(0,0,0));
+//	float3 lightVec = normalize(float3(10,20,25) - float3(0,0,0));
+	float3 lightVec = normalize(float3(10,20,25) - mvPosition);
 	float diffuse = max(dot(mvNormal, lightVec), 0.0);
 
 	output.Position = mul(MVP, Position);

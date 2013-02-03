@@ -49,7 +49,8 @@ public:
 	int init(void);
 	void render(void);
 	void release(void);
-	void mouse(int x, int y, int b);
+	void build(void);
+
 private:
 	float t;
 	DWORD timeStart;
@@ -67,14 +68,15 @@ private:
 
 	ID3D10ShaderResourceView *rvShader0;
 
+	float nx,ny;
+
 	mat4 proj;
-	int lx, ly, lb;
-	float rx, ry;
+	float rx, ry, zoom;
 	struct model *m;
 };
 
-TestApp::TestApp() : App(), t(0.0f), timeStart(0), lb(0), rx(0), ry(0),
-	layout(NULL), vtxbuf(NULL), idxbuf(NULL), cbuf(NULL),
+TestApp::TestApp() : App(), t(0.0f), timeStart(0), zoom(0), rx(0), ry(0), nx(0), ny(0),
+	layout(NULL), vtxbuf(NULL), idxbuf(NULL), cbuf(NULL), ibuf(NULL),
 	PS(NULL), VS(NULL), PSbc(NULL), VSbc(NULL), rvShader0(NULL) {
 }
 
@@ -86,6 +88,45 @@ void TestApp::release(void) {
 	if (vtxbuf) vtxbuf->Release();
 	if (idxbuf) idxbuf->Release();
 	if (cbuf) cbuf->Release();
+}
+
+void TestApp::build(void) {
+	float scale = SZh;
+	int x, y, z, n = 0;
+	for (z = -SZh; z < SZh; z++) {
+		for (x = -SZh; x < SZh; x++) {
+			for (y = -SZh; y < SZh; y++) {
+				float fx = x/scale * 0.50f + nx;
+				float fy = y/scale * 0.50f;
+				float fz = z/scale * 0.50f + ny;
+#if 0
+				if (snoise(fx,fy,fz) > 0.1)
+					continue;
+#else
+				float sn =
+					snoise(fx,fz) +
+					snoise(fx*2.0f,fz*2.0f) / 4.0f +
+					snoise(fx*4.0f,fz*4.0f) / 8.0f;
+				if (sn < y/scale)
+					continue;
+#endif
+				location[n+0] = x;
+				location[n+1] = y;
+				location[n+2] = z;
+				location[n+3] = 1;
+				n += 4;
+			}
+		}
+	}
+	lcount = n / 4;
+	printx("Wrote %d locations\n", lcount);
+
+	if (ibuf) {
+		ibuf->Release();
+		ibuf = NULL;
+	}
+	
+	createVtxBuffer(location, lcount*4, &ibuf);
 }
 
 int TestApp::init(void) {
@@ -106,36 +147,6 @@ int TestApp::init(void) {
 
 	device->VSSetShader(VS);
 	device->PSSetShader(PS);
-
-	float scale = SZh;
-	int x, y, z, n = 0;
-	for (z = -SZh; z < SZh; z++) {
-		for (x = -SZh; x < SZh; x++) {
-			for (y = -SZh; y < SZh; y++) {
-				float fx = x/scale * 0.50;
-				float fy = y/scale * 0.50;
-				float fz = z/scale * 0.50;
-#if 0
-				if (snoise(fx,fy,fz) > 0.1)
-					continue;
-#else
-				float sn =
-					snoise(fx,fz) +
-					snoise(fx*2.0,fz*2.0) / 4.0 +
-					snoise(fx*4.0,fz*4.0) / 8.0;
-				if (sn < y/scale)
-					continue;
-#endif
-				location[n+0] = x;
-				location[n+1] = y;
-				location[n+2] = z;
-				location[n+3] = 1;
-				n += 4;
-			}
-		}
-	}
-	lcount = n / 4;
-	printx("Wrote %d locations\n", lcount);
 		
 	if (!(m = load_wavefront_obj("unitcubeoid.obj")))
 		return error("cannot load model");
@@ -144,8 +155,6 @@ int TestApp::init(void) {
 	if (createVtxBuffer(m->vdata, 32 * m->vcount, &vtxbuf))
 		return -1;
 	if (createIdxBuffer(m->idx, sizeof(short) * m->icount, &idxbuf))
-		return -1;
-	if (createVtxBuffer(location, lcount*4, &ibuf))
 		return -1;
 
 #if 0
@@ -162,15 +171,19 @@ int TestApp::init(void) {
 
 	proj.setPerspective(D2R(90.0), width / (float) height, 0.1f, 250.0f);
 
+	build();
+	zoom = SZ;
 	return 0;
 }
 
 static float rate = 90.0;
 
-void TestApp::mouse(int x, int y, int b) {
-	if (b & lb & 1) {
-		float dx = ((float) (x - lx)) / ((float) width);
-		float dy = ((float) (y - ly)) / ((float) height);
+void TestApp::render(void) {
+	int update = 0;
+
+	if (mouseBTN & 1) {
+		float dx = ((float) mouseDX) / 400.0f;
+		float dy = ((float) mouseDY) / 400.0f;
 		ry += dx * rate;
 		rx += dy * rate;
 		if (rx < 0.0) rx += 360.0;
@@ -178,18 +191,20 @@ void TestApp::mouse(int x, int y, int b) {
 		if (ry < 0.0) ry += 360.0;
 		else if (ry > 360.0) ry -= 360.0;
 	}
-	lb = b;
-	lx = x;
-	ly = y;
-}
+	if (mouseBTN & 2) {
+		float dy = ((float) mouseDY) / 400.0f;
+		zoom += dy * rate;
+		if (zoom < 5.0) zoom = 5.0;
+		if (zoom > 100.0) zoom = 100.0;
+	}
 
-void TestApp::render(void) {
-	static float t = 0.0f;
-        static DWORD timeStart = 0;
-	DWORD timeCur = GetTickCount();
-	if (timeStart == 0)
-		timeStart = timeStart;
-	t = (timeCur - timeStart) / 1000.0f;
+	if (keystate[DIK_A]) { nx -= 0.01; update = 1; }
+	if (keystate[DIK_D]) { nx += 0.01; update = 1; }
+	if (keystate[DIK_W]) { ny -= 0.01; update = 1; }
+	if (keystate[DIK_S]) { ny += 0.01; update = 1; }
+
+	if (update)
+		build();
 
 	float rgba[4] = { 0.0f, 0.125f, 0.3f, 1.0f }; 
 	device->ClearRenderTargetView(targetView, rgba);
@@ -212,8 +227,9 @@ void TestApp::render(void) {
 	mat4 world, view, tmp;
 
 	view.identity().rotateX(D2R(10)).rotateY(t).translate(0, 0, -10);
-	view.identity().translate(0, 0, -SZ);
-	world.identity().translate(0.5, 0.5, 0.5).rotateY(D2R(ry)).rotateX(D2R(rx));
+	view.identity().rotateY(D2R(ry)).rotateX(D2R(rx)).translate(0, 0, -zoom);
+//	world.identity().translate(0.5, 0.5, 0.5).rotateY(D2R(ry)).rotateX(D2R(rx));
+	world.identity().translate(0.5, 0.5, 0.5);
 	cb0.mvp = world * view * proj;
 	cb0.mv = world * view;
 	device->UpdateSubresource(cbuf, 0, NULL, &cb0, 0, 0);
