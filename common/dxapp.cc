@@ -22,6 +22,7 @@
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
 App::App() : width(800), height(600), active(0),
+	mouseDX(0), mouseDY(0), mouseDZ(0), mouseBTN(0),
 	device(NULL), targetView(NULL), depthView(NULL),
 	swapchain(NULL), rasterizerState(NULL) {
 }
@@ -81,25 +82,9 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM l
 		moving = 0;
 		app->reconfigure(0);
 		break;
-	case WM_LBUTTONDOWN:
-	case WM_LBUTTONUP:
-	case WM_RBUTTONDOWN:
-	case WM_RBUTTONUP: {
-		int x = (short) LOWORD(lParam);
-		int y = (short) HIWORD(lParam);
-		int b = LOWORD(wParam);
-		app->mouse(x, y, b & 3);
+	case WM_MOUSEMOVE:
+		app->setMouseXY((short) LOWORD(lParam), (short) HIWORD(lParam));
 		break;
-	}
-	case WM_MOUSEMOVE: {
-		int b = LOWORD(wParam);
-		if (b & 3) {
-			int x = (short) LOWORD(lParam);
-			int y = (short) HIWORD(lParam);
-			app->mouse(x, y, b & 3);
-		}
-		break;
-	}
 	case WM_ACTIVATEAPP:
 		printx("win: activate: %d\n", wParam);
 		app->setActive(wParam);
@@ -124,7 +109,7 @@ void App::eventloop(void) {
 	HRESULT hr;
 	MSG msg = {0};
 	while (msg.message != WM_QUIT) {
-		if (active) {
+		if (1) {
 			if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
 				TranslateMessage(&msg);
 				DispatchMessage(&msg);
@@ -137,7 +122,7 @@ void App::eventloop(void) {
 			DispatchMessage(&msg);
 			continue;
 		}
-		int n;
+
 		hr = dkeyboard->GetDeviceState(sizeof(keystate), (void*) keystate);
 		if (FAILED(hr)) {
 			// We can lose the keyboard if we lose focus
@@ -146,6 +131,21 @@ void App::eventloop(void) {
 		} else {
 			if (keystate[DIK_ESCAPE] & 0x80)
 				break;
+		}
+
+		DIMOUSESTATE2 state;
+		hr = dmouse->GetDeviceState(sizeof(DIMOUSESTATE2), &state);
+		if (FAILED(hr)) {
+			dmouse->Acquire();
+			mouseDX = mouseDY = mouseDZ = 0;
+		} else {
+			mouseDX = state.lX;
+			mouseDY = state.lY;
+			mouseDZ = state.lZ;
+			mouseBTN =
+				((state.rgbButtons[0] >> 7) & 1) |
+				((state.rgbButtons[1] >> 6) & 2) |
+				((state.rgbButtons[2] >> 5) & 4);
 		}
 		app->render();		
 		frame++;
@@ -193,20 +193,29 @@ int App::initDirectInput(void) {
 	hr = DirectInput8Create(hinstance,
 		DIRECTINPUT_VERSION, IID_IDirectInput8,
 		(void**) &dinput, NULL);
-	if (hr)
+	if (FAILED(hr))
 		return -1;
+
 	hr = dinput->CreateDevice(GUID_SysKeyboard, &dkeyboard, NULL);
-	if (hr)
+	if (FAILED(hr))
 		return -1;
 	hr = dkeyboard->SetDataFormat(&c_dfDIKeyboard);
-	if (hr)
+	if (FAILED(hr))
 		return -1;
 	hr = dkeyboard->SetCooperativeLevel(hwnd, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);
-	if (hr)
+	if (FAILED(hr))
 		return -1;
-	hr = dkeyboard->Acquire();
-	if (hr)
+
+	hr = dinput->CreateDevice(GUID_SysMouse, &dmouse, NULL);
+	if (FAILED(hr))
 		return -1;
+	hr = dmouse->SetDataFormat(&c_dfDIMouse2);
+	if (FAILED(hr))
+		return -1;
+	hr = dmouse->SetCooperativeLevel(hwnd, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);
+	if (FAILED(hr))
+		return -1;
+
 	return 0;
 }
 

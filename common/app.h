@@ -40,7 +40,6 @@ public:
 	virtual int init(void) = 0;
 	virtual void render(void) = 0;
 	virtual void release(void) {};
-	virtual void mouse(int x, int y, int buttons) {};
 
 	/* glue - do not use */
 	int start(HINSTANCE hInstance, int nCmdShow);
@@ -48,9 +47,19 @@ public:
 	void stop(void);
 	int reconfigure(int init);
 	void setActive(int a) { active = a; };
+	void setMouseXY(int x, int y) { mouseWX = x; mouseWY = y; };
 protected:
 	int width;
 	int height;
+
+	/* mouse motion since last frame */
+	int mouseDX, mouseDY, mouseDZ;
+	/* mouse button state */
+	int mouseBTN;
+	/* mouse position in window coordinates */
+	int mouseWX, mouseWY;
+	/* keys down */
+	unsigned char keystate[256];
 
 	ID3D10Device *device;
 	IDXGISwapChain *swapchain;
@@ -78,7 +87,7 @@ protected:
 private:
 	LPDIRECTINPUT8 dinput;
 	LPDIRECTINPUTDEVICE8 dkeyboard;
-	unsigned char keystate[256];
+	LPDIRECTINPUTDEVICE8 dmouse;
 	int initD3D(void);
 	int initDirectInput(void);
 	HWND hwnd;
