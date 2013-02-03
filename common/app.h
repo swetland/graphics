@@ -22,6 +22,7 @@
 #pragma warning ( disable : 4005 )
 
 #include <d3d10.h>
+#include <dinput.h>
 
 #ifdef _DEBUG
 #define DEVICE_DEBUG_FLAGS D3D10_CREATE_DEVICE_DEBUG
@@ -41,10 +42,12 @@ public:
 	virtual void release(void) {};
 	virtual void mouse(int x, int y, int buttons) {};
 
+	/* glue - do not use */
 	int start(HINSTANCE hInstance, int nCmdShow);
+	void eventloop(void);
 	void stop(void);
 	int reconfigure(int init);
-
+	void setActive(int a) { active = a; };
 protected:
 	int width;
 	int height;
@@ -71,10 +74,16 @@ protected:
 	}
 	int compileVertexShader(const char *fn, ID3D10VertexShader **vs, ID3D10Blob **data);
 	int compilePixelShader(const char *fn, ID3D10PixelShader **ps, ID3D10Blob **data);
+
 private:
+	LPDIRECTINPUT8 dinput;
+	LPDIRECTINPUTDEVICE8 dkeyboard;
+	unsigned char keystate[256];
 	int initD3D(void);
+	int initDirectInput(void);
 	HWND hwnd;
 	HINSTANCE hinstance;
+	int active;
 };
 
 int compileShader(const char *fn, const char *profile, ID3D10Blob **shader);

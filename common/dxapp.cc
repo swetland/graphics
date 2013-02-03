@@ -21,7 +21,7 @@
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
-App::App() : width(800), height(600),
+App::App() : width(800), height(600), active(0),
 	device(NULL), targetView(NULL), depthView(NULL),
 	swapchain(NULL), rasterizerState(NULL) {
 }
@@ -30,7 +30,12 @@ App::~App() {
 }
 
 void App::stop(void) {
-	if (device) device->ClearState();
+	if (swapchain) {
+		// teardown during fullscreen will crash
+		// ensure we're not fullscreen first...
+		swapchain->SetFullscreenState(false, NULL);
+	}
+	if (device) device->Release();
 
 	release();
 
@@ -39,7 +44,7 @@ void App::stop(void) {
 	if (depthBuffer) depthBuffer->Release();
 	if (targetView) targetView->Release();
 	if (swapchain) swapchain->Release();
-	if (device) device->Release();
+	if (device) device->ClearState();
 
 	printx("-- goodbye --\n");
 }
@@ -47,6 +52,7 @@ void App::stop(void) {
 static App *app;
 static int moving = 0;
 static int frame = 0;
+
 static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	PAINTSTRUCT ps;
 	HDC hdc;
@@ -96,6 +102,7 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM l
 	}
 	case WM_ACTIVATEAPP:
 		printx("win: activate: %d\n", wParam);
+		app->setActive(wParam);
 		break;
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
@@ -105,23 +112,44 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM l
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow) {
 	app = createApp();
-
 	if (app->start(hInstance, nCmdShow))
 		return 0;
-
-	MSG msg = {0};
-	while (msg.message != WM_QUIT) {
-		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		} else {
-			app->render();
-			frame++;
-		}
-	}
+	app->eventloop();
 	app->stop();
 	delete app;
-	return (int) msg.wParam;
+	return 0;
+}
+
+void App::eventloop(void) {
+	HRESULT hr;
+	MSG msg = {0};
+	while (msg.message != WM_QUIT) {
+		if (active) {
+			if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
+				continue;
+			}
+		} else {
+			if (GetMessage(&msg, 0, 0, 0) == -1)
+				return;
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+			continue;
+		}
+		int n;
+		hr = dkeyboard->GetDeviceState(sizeof(keystate), (void*) keystate);
+		if (FAILED(hr)) {
+			// We can lose the keyboard if we lose focus
+			// Try to reacquire it
+			dkeyboard->Acquire();
+		} else {
+			if (keystate[DIK_ESCAPE] & 0x80)
+				break;
+		}
+		app->render();		
+		frame++;
+	}
 }
 
 int App::start(HINSTANCE hInstance, int nCmdShow) {
@@ -153,7 +181,31 @@ int App::start(HINSTANCE hInstance, int nCmdShow) {
 
 	if (FAILED(initD3D()))
 		return -1;
+	if (initDirectInput())
+		return -1;
 	if (init())
+		return -1;
+	return 0;
+}
+
+int App::initDirectInput(void) {
+	HRESULT hr;
+	hr = DirectInput8Create(hinstance,
+		DIRECTINPUT_VERSION, IID_IDirectInput8,
+		(void**) &dinput, NULL);
+	if (hr)
+		return -1;
+	hr = dinput->CreateDevice(GUID_SysKeyboard, &dkeyboard, NULL);
+	if (hr)
+		return -1;
+	hr = dkeyboard->SetDataFormat(&c_dfDIKeyboard);
+	if (hr)
+		return -1;
+	hr = dkeyboard->SetCooperativeLevel(hwnd, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);
+	if (hr)
+		return -1;
+	hr = dkeyboard->Acquire();
+	if (hr)
 		return -1;
 	return 0;
 }
@@ -379,7 +431,7 @@ int compileShader(const char *fn, const char *profile, ID3D10Blob **shader) {
 
 	hr = D3D10CompileShader((char*) data, dsz, fn,
 		NULL, NULL, "main", profile,
-		D3D10_SHADER_ENABLE_STRICTNESS, // | D3D10_SHADER_DEBUG,
+		D3D10_SHADER_ENABLE_STRICTNESS,
 		shader, &errors);
 
 	free(data);

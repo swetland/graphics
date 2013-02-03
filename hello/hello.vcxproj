@@ -57,7 +57,7 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d10.lib;dxerr.lib;dxguid.lib;winmm.lib;d3dcompiler.lib;libpng-1.2.50.lib;zlib-1.2.7.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d10.lib;dxerr.lib;dxguid.lib;winmm.lib;d3dcompiler.lib;dinput8.lib;libpng-1.2.50.lib;zlib-1.2.7.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
       <AdditionalLibraryDirectories>../Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
@@ -73,7 +73,7 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d10.lib;dxerr.lib;dxguid.lib;winmm.lib;d3dcompiler.lib;libpng-1.2.50.lib;zlib-1.2.7.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d10.lib;dxerr.lib;dxguid.lib;winmm.lib;d3dcompiler.lib;dinput8.lib;libpng-1.2.50.lib;zlib-1.2.7.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
       <AdditionalLibraryDirectories>../Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
