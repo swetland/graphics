@@ -114,10 +114,10 @@ void __mat4_set_ortho(float m[16], float l, float r, float b, float t, float n, 
 	memset(m, 0, sizeof(float[16]));
 	m[0] = 2.0 / (r - l);
 	m[5] = 2.0 / (t - b);
-	m[10] = -2.0 / (f - n);
-	m[12] = -((r + l) / (r - l));
-	m[13] = -((t + b) / (t - b));
-	m[14] = -((f + n) / (f - n));
+	m[10] = 1.0 / (n - f);
+	m[12] = (l + r) / (l - r);
+	m[13] = (t + b) / (b - t);
+	m[14] = n / (n - f);
 	m[15] = 1.0;
 }
 

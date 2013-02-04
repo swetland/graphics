@@ -24,7 +24,7 @@ LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 App::App() : width(800), height(600), active(0),
 	mouseDX(0), mouseDY(0), mouseDZ(0), mouseBTN(0),
 	device(NULL), targetView(NULL), depthView(NULL),
-	swapchain(NULL), rasterizerState(NULL) {
+	swapchain(NULL), rsDefault(NULL), dsDepthEnabled(NULL), dsDepthDisabled(NULL) {
 }
 
 App::~App() {
@@ -40,7 +40,9 @@ void App::stop(void) {
 
 	release();
 
-	if (rasterizerState) rasterizerState->Release();
+	if (rsDefault) rsDefault->Release();
+	if (dsDepthEnabled) dsDepthEnabled->Release();
+	if (dsDepthDisabled) dsDepthDisabled->Release();
 	if (depthView) depthView->Release();
 	if (depthBuffer) depthBuffer->Release();
 	if (targetView) targetView->Release();
@@ -347,11 +349,26 @@ int App::initD3D(void) {
 	rd.ScissorEnable = false;
 	rd.MultisampleEnable = false;
 	rd.AntialiasedLineEnable = false;
-	hr = device->CreateRasterizerState(&rd, &rasterizerState);
+	hr = device->CreateRasterizerState(&rd, &rsDefault);
 	if (FAILED(hr))
 		return -1;
-	device->RSSetState(rasterizerState);
 
+	D3D10_DEPTH_STENCIL_DESC dsd;
+	memset(&dsd, 0, sizeof(dsd));
+	dsd.DepthEnable = true;
+	dsd.DepthWriteMask = D3D10_DEPTH_WRITE_MASK_ALL;
+	dsd.DepthFunc = D3D10_COMPARISON_LESS;
+	dsd.StencilEnable = false;
+	dsd.StencilReadMask = D3D10_DEFAULT_STENCIL_READ_MASK;
+	dsd.StencilWriteMask = D3D10_DEFAULT_STENCIL_WRITE_MASK;
+	hr = device->CreateDepthStencilState(&dsd, &dsDepthEnabled);
+	if (FAILED(hr))
+		return -1;
+	hr = device->CreateDepthStencilState(&dsd, &dsDepthDisabled);
+	if (FAILED(hr))
+		return -1;
+
+	device->RSSetState(rsDefault);
 	return S_OK;
 }
 

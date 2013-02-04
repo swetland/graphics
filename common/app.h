@@ -48,6 +48,27 @@ public:
 	int reconfigure(int init);
 	void setActive(int a) { active = a; };
 	void setMouseXY(int x, int y) { mouseWX = x; mouseWY = y; };
+
+	int createTextureRGBA(void *data, int tw, int th,
+		int genmips, ID3D10ShaderResourceView **srv);
+	int createBuffer(D3D10_BIND_FLAG flag,
+		void *data, int sz, ID3D10Buffer **buf);
+	void updateBuffer(ID3D10Buffer *buf, void *data) {
+		device->UpdateSubresource(buf, 0, NULL, data, 0, 0);
+	}
+
+	int createVtxBuffer(void *data, int sz, ID3D10Buffer **buf) {
+		return createBuffer(D3D10_BIND_VERTEX_BUFFER, data, sz, buf);
+	}
+	int createIdxBuffer(void *data, int sz, ID3D10Buffer **buf) {
+		return createBuffer(D3D10_BIND_INDEX_BUFFER, data, sz, buf);
+	}
+	int createConstantBuffer(int sz, ID3D10Buffer **buf) {
+		return createBuffer(D3D10_BIND_CONSTANT_BUFFER, NULL, sz, buf);
+	}
+	int compileVertexShader(const char *fn, ID3D10VertexShader **vs, ID3D10Blob **data);
+	int compilePixelShader(const char *fn, ID3D10PixelShader **ps, ID3D10Blob **data);
+
 protected:
 	int width;
 	int height;
@@ -66,23 +87,9 @@ protected:
 	ID3D10RenderTargetView *targetView;
 	ID3D10Texture2D *depthBuffer;
 	ID3D10DepthStencilView *depthView;
-	ID3D10RasterizerState *rasterizerState;
-
-	int createTextureRGBA(void *data, int tw, int th,
-		int genmips, ID3D10ShaderResourceView **srv);
-	int createBuffer(D3D10_BIND_FLAG flag,
-		void *data, int sz, ID3D10Buffer **buf);
-	int createVtxBuffer(void *data, int sz, ID3D10Buffer **buf) {
-		return createBuffer(D3D10_BIND_VERTEX_BUFFER, data, sz, buf);
-	}
-	int createIdxBuffer(void *data, int sz, ID3D10Buffer **buf) {
-		return createBuffer(D3D10_BIND_INDEX_BUFFER, data, sz, buf);
-	}
-	int createConstantBuffer(int sz, ID3D10Buffer **buf) {
-		return createBuffer(D3D10_BIND_CONSTANT_BUFFER, NULL, sz, buf);
-	}
-	int compileVertexShader(const char *fn, ID3D10VertexShader **vs, ID3D10Blob **data);
-	int compilePixelShader(const char *fn, ID3D10PixelShader **ps, ID3D10Blob **data);
+	ID3D10RasterizerState *rsDefault;
+	ID3D10DepthStencilState *dsDepthEnabled;
+	ID3D10DepthStencilState *dsDepthDisabled;
 
 private:
 	LPDIRECTINPUT8 dinput;
@@ -93,6 +100,12 @@ private:
 	HWND hwnd;
 	HINSTANCE hinstance;
 	int active;
+};
+
+struct Texture2D {
+	ID3D10Texture2D *tex;
+	ID3D10ShaderResourceView *srv;
+	Texture2D() : tex(NULL), srv(NULL) {};
 };
 
 int compileShader(const char *fn, const char *profile, ID3D10Blob **shader);

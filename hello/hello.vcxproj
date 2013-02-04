@@ -89,11 +89,13 @@
     <ClCompile Include="..\common\savepng.cc" />
     <ClCompile Include="..\common\simplexnoise.cc" />
     <ClCompile Include="hello.cc" />
+    <ClCompile Include="textgrid.cc" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\app.h" />
     <ClInclude Include="..\common\matrix.h" />
     <ClInclude Include="..\common\util.h" />
+    <ClInclude Include="textgrid.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="SimplePS.hlsl">
@@ -101,6 +103,14 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="TextPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="TextVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
