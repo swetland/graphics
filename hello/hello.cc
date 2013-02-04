@@ -16,6 +16,7 @@
 #include "app.h"
 #include "matrix.h"
 #include "util.h"
+#include "textgrid.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,7 +36,7 @@ static float locationx[] = {
 	4, 0, 0,
 };
 
-#define SZ 64
+#define SZ 16
 #define SZh (SZ / 2)
 #define SZe (SZ * SZ * SZ)
 #define SZb (SZe * 4)
@@ -68,6 +69,7 @@ private:
 
 	ID3D10ShaderResourceView *rvShader0;
 
+	TextGrid text;
 	float nx,ny;
 
 	mat4 proj;
@@ -145,9 +147,6 @@ int TestApp::init(void) {
 	if (FAILED(hr))
 		return error("create input layout failed 0x%08x", hr);
 
-	device->VSSetShader(VS);
-	device->PSSetShader(PS);
-		
 	if (!(m = load_wavefront_obj("unitcubeoid.obj")))
 		return error("cannot load model");
 	printx("Object Loaded. %d vertices, %d indices.\n", m->vcount, m->icount);
@@ -166,19 +165,22 @@ int TestApp::init(void) {
 #endif
 	if (createConstantBuffer(32 * 4, &cbuf))
 		return -1;
-	device->VSSetConstantBuffers(0, 1, &cbuf);
-	device->PSSetShaderResources(0, 1, &rvShader0);
 
 	proj.setPerspective(D2R(90.0), width / (float) height, 0.1f, 250.0f);
 
 	build();
 	zoom = SZ;
+
+	if (text.init(this, device, 64, 64))
+		return -1;
+
 	return 0;
 }
 
 static float rate = 90.0;
 
 void TestApp::render(void) {
+	UINT stride, offset;
 	int update = 0;
 
 	if (mouseBTN & 1) {
@@ -203,6 +205,30 @@ void TestApp::render(void) {
 	if (keystate[DIK_W]) { ny -= 0.01; update = 1; }
 	if (keystate[DIK_S]) { ny += 0.01; update = 1; }
 
+	if (keystate[DIK_P]) {
+		ID3D10PixelShader *PS2;
+		ID3D10VertexShader *VS2;
+		ID3D10Blob *PSbc2;
+		ID3D10Blob *VSbc2;
+			if (compilePixelShader("SimplePS.hlsl", &PS2, &PSbc2))
+				goto oops;
+			if (compileVertexShader("SimpleVS.hlsl", &VS2, &VSbc2)) {
+				PS2->Release();
+				PSbc2->Release();
+				goto oops;
+			}
+		PS->Release();
+		VS->Release();
+		PSbc->Release();
+		VSbc->Release();
+		PS = PS2;
+		VS = VS2;
+		PSbc = PSbc2;
+		VSbc = VSbc2;
+		device->PSSetShader(PS);
+		device->VSSetShader(VS);
+	}
+oops:
 	if (update)
 		build();
 
@@ -210,16 +236,18 @@ void TestApp::render(void) {
 	device->ClearRenderTargetView(targetView, rgba);
 	device->ClearDepthStencilView(depthView, D3D10_CLEAR_DEPTH, 1.0f, 0 );
 
-	UINT stride = 32;
-	UINT offset = 0;
+	device->VSSetShader(VS);
+	device->PSSetShader(PS);		
+	device->VSSetConstantBuffers(0, 1, &cbuf);
+	device->PSSetShaderResources(0, 1, &rvShader0);
+
+	stride = 32; offset = 0;
 	device->IASetInputLayout(layout);
 	device->IASetVertexBuffers(0, 1, &vtxbuf, &stride, &offset);
-	stride = 4;
-	offset = 0;
+	stride = 4; offset = 0;
 	device->IASetVertexBuffers(1, 1, &ibuf, &stride, &offset);
 	device->IASetIndexBuffer(idxbuf, DXGI_FORMAT_R16_UINT, 0);
 	device->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
 	struct {
 		mat4 mvp;
 		mat4 mv;
@@ -232,8 +260,15 @@ void TestApp::render(void) {
 	world.identity().translate(0.5, 0.5, 0.5);
 	cb0.mvp = world * view * proj;
 	cb0.mv = world * view;
-	device->UpdateSubresource(cbuf, 0, NULL, &cb0, 0, 0);
+	updateBuffer(cbuf, &cb0);
 	device->DrawIndexedInstanced(m->icount, lcount, 0, 0, 0);
+
+	text.clear();
+	text.printf(0, 0, "rx: %8.4f", rx);
+	text.printf(0, 1, "ry: %8.4f", ry);
+	text.printf(0, 2, "zm: %8.4f", zoom);
+	text.printf(0, -1, "hello.cc");
+	text.render(this, device);
 
 	swapchain->Present(1, 0);
 }
