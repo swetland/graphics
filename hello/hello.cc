@@ -56,18 +56,12 @@ private:
 	float t;
 	DWORD timeStart;
 
-	ID3D10InputLayout *layout;
-	ID3D10Buffer *vtxbuf;
-	ID3D10Buffer *idxbuf;
-	ID3D10Buffer *ibuf;
-	ID3D10Buffer *cbuf;
-
-	ID3D10PixelShader *PS;
-	ID3D10VertexShader *VS;
-	ID3D10Blob *PSbc;
-	ID3D10Blob *VSbc;
-
-	ID3D10ShaderResourceView *rvShader0;
+	PixelShader ps;
+	VertexShader vs;
+	IndexBuffer ibuf;
+	VertexBuffer vbuf;
+	UniformBuffer ubuf;
+	VertexBuffer lbuf;
 
 	TextGrid text;
 	float nx,ny;
@@ -77,19 +71,10 @@ private:
 	struct model *m;
 };
 
-TestApp::TestApp() : App(), t(0.0f), timeStart(0), zoom(0), rx(0), ry(0), nx(0), ny(0),
-	layout(NULL), vtxbuf(NULL), idxbuf(NULL), cbuf(NULL), ibuf(NULL),
-	PS(NULL), VS(NULL), PSbc(NULL), VSbc(NULL), rvShader0(NULL) {
+TestApp::TestApp() : App(), t(0.0f), timeStart(0), zoom(0), rx(0), ry(0), nx(0), ny(0) {
 }
 
 void TestApp::release(void) {
-	if (PS) PS->Release();
-	if (VS) VS->Release();
-	if (rvShader0) rvShader0->Release();
-	if (layout) layout->Release();
-	if (vtxbuf) vtxbuf->Release();
-	if (idxbuf) idxbuf->Release();
-	if (cbuf) cbuf->Release();
 }
 
 void TestApp::build(void) {
@@ -123,47 +108,24 @@ void TestApp::build(void) {
 	lcount = n / 4;
 	printx("Wrote %d locations\n", lcount);
 
-	if (ibuf) {
-		ibuf->Release();
-		ibuf = NULL;
-	}
-	
-	createVtxBuffer(location, lcount*4, &ibuf);
+	initBuffer(&lbuf, location, lcount * 4);
 }
 
 int TestApp::init(void) {
-	HRESULT hr;
-	void *data;
-	unsigned dsz, dw, dh;
-
-	if (compilePixelShader("SimplePS.hlsl", &PS, &PSbc))
+	if (loadShader(&ps, "SimplePS.hlsl"))
 		return -1;
-	if (compileVertexShader("SimpleVS.hlsl", &VS, &VSbc))
+	if (loadShader(&vs, "SimpleVS.hlsl", obj_layout, sizeof(obj_layout) / sizeof(obj_layout[0])))
 		return -1;
-
-	hr = device->CreateInputLayout(obj_layout,
-		sizeof(obj_layout) / sizeof(obj_layout[0]),
-		VSbc->GetBufferPointer(), VSbc->GetBufferSize(), &layout);
-	if (FAILED(hr))
-		return error("create input layout failed 0x%08x", hr);
 
 	if (!(m = load_wavefront_obj("unitcubeoid.obj")))
 		return error("cannot load model");
 	printx("Object Loaded. %d vertices, %d indices.\n", m->vcount, m->icount);
 
-	if (createVtxBuffer(m->vdata, 32 * m->vcount, &vtxbuf))
+	if (initBuffer(&vbuf, m->vdata, 32 * m->vcount))
 		return -1;
-	if (createIdxBuffer(m->idx, sizeof(short) * m->icount, &idxbuf))
+	if (initBuffer(&ibuf, m->idx, 2 * m->icount))
 		return -1;
-
-#if 0
-	if (!(data = load_png_rgba("cube-texture.png", &dw, &dh, 0)))
-		return error("cannot load texture");
-	if (createTextureRGBA(data, dw, dh, 1, &rvShader0))
-		return -1;
-	free(data);
-#endif
-	if (createConstantBuffer(32 * 4, &cbuf))
+	if (initBuffer(&ubuf, NULL, 32 * 4))
 		return -1;
 
 	proj.setPerspective(D2R(90.0), width / (float) height, 0.1f, 250.0f);
@@ -206,27 +168,9 @@ void TestApp::render(void) {
 	if (keystate[DIK_S]) { ny += 0.01; update = 1; }
 
 	if (keystate[DIK_P]) {
-		ID3D10PixelShader *PS2;
-		ID3D10VertexShader *VS2;
-		ID3D10Blob *PSbc2;
-		ID3D10Blob *VSbc2;
-			if (compilePixelShader("SimplePS.hlsl", &PS2, &PSbc2))
-				goto oops;
-			if (compileVertexShader("SimpleVS.hlsl", &VS2, &VSbc2)) {
-				PS2->Release();
-				PSbc2->Release();
-				goto oops;
-			}
-		PS->Release();
-		VS->Release();
-		PSbc->Release();
-		VSbc->Release();
-		PS = PS2;
-		VS = VS2;
-		PSbc = PSbc2;
-		VSbc = VSbc2;
-		device->PSSetShader(PS);
-		device->VSSetShader(VS);
+		loadShader(&ps, "HelloPS.hlsl");
+		loadShader(&vs, "SimpleVS.hlsl", obj_layout,
+			sizeof(obj_layout) / sizeof(obj_layout[0]));
 	}
 oops:
 	if (update)
@@ -236,17 +180,12 @@ oops:
 	device->ClearRenderTargetView(targetView, rgba);
 	device->ClearDepthStencilView(depthView, D3D10_CLEAR_DEPTH, 1.0f, 0 );
 
-	device->VSSetShader(VS);
-	device->PSSetShader(PS);		
-	device->VSSetConstantBuffers(0, 1, &cbuf);
-	device->PSSetShaderResources(0, 1, &rvShader0);
+	useShaders(&ps, &vs);
+	useBuffer(&ubuf, 0);
+	useBuffer(&vbuf, 0, 32, 0);
+	useBuffer(&lbuf, 1, 4, 0);
+	useBuffer(&ibuf);
 
-	stride = 32; offset = 0;
-	device->IASetInputLayout(layout);
-	device->IASetVertexBuffers(0, 1, &vtxbuf, &stride, &offset);
-	stride = 4; offset = 0;
-	device->IASetVertexBuffers(1, 1, &ibuf, &stride, &offset);
-	device->IASetIndexBuffer(idxbuf, DXGI_FORMAT_R16_UINT, 0);
 	device->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	struct {
 		mat4 mvp;
@@ -260,7 +199,7 @@ oops:
 	world.identity().translate(0.5, 0.5, 0.5);
 	cb0.mvp = world * view * proj;
 	cb0.mv = world * view;
-	updateBuffer(cbuf, &cb0);
+	updateBuffer(&ubuf, &cb0);
 	device->DrawIndexedInstanced(m->icount, lcount, 0, 0, 0);
 
 	text.clear();

@@ -32,6 +32,46 @@
 #define SHADER_DEBUG_FLAGS 0
 #endif
 
+struct PixelShader {
+	ID3D10PixelShader *ps;
+	PixelShader() : ps(NULL) {};
+	~PixelShader() { if (ps) ps->Release(); };
+};
+
+struct VertexShader {
+	ID3D10VertexShader *vs;
+	ID3D10InputLayout *layout;
+	D3D10_INPUT_ELEMENT_DESC *desc;
+	unsigned dcount;
+	VertexShader() : vs(NULL), layout(NULL), desc(NULL), dcount(0) {};
+	~VertexShader() { if (vs) { vs->Release(); layout->Release(); } };
+};
+
+struct Texture2D {
+	ID3D10Texture2D *tex;
+	ID3D10ShaderResourceView *srv;
+	Texture2D() : tex(NULL), srv(NULL) {};
+	~Texture2D() { if (tex) { tex->Release(); srv->Release(); } };
+};
+
+struct UniformBuffer {
+	ID3D10Buffer *buf;
+	UniformBuffer() : buf(NULL) {};
+	~UniformBuffer() { if (buf) buf->Release(); };
+};
+
+struct VertexBuffer {
+	ID3D10Buffer *buf;
+	VertexBuffer() : buf(NULL) {};
+	~VertexBuffer() { if (buf) buf->Release(); };
+};
+
+struct IndexBuffer {
+	ID3D10Buffer *buf;
+	IndexBuffer() : buf(NULL) {};
+	~IndexBuffer() { if (buf) buf->Release(); };
+};
+
 class App {
 public:
 	App();
@@ -49,25 +89,50 @@ public:
 	void setActive(int a) { active = a; };
 	void setMouseXY(int x, int y) { mouseWX = x; mouseWY = y; };
 
-	int createTextureRGBA(void *data, int tw, int th,
-		int genmips, ID3D10ShaderResourceView **srv);
-	int createBuffer(D3D10_BIND_FLAG flag,
-		void *data, int sz, ID3D10Buffer **buf);
-	void updateBuffer(ID3D10Buffer *buf, void *data) {
-		device->UpdateSubresource(buf, 0, NULL, data, 0, 0);
+	// TODO: move away from D3D10_INPUT...
+	int compileShader(VertexShader *vs, const char *fn,
+		void *data, unsigned len, int raw,
+		D3D10_INPUT_ELEMENT_DESC *layout, unsigned lcount);
+	int compileShader(PixelShader *ps, const char *fn,
+		void *data, unsigned len, int raw);
+	int loadShader(VertexShader *vs, const char *fn,
+		D3D10_INPUT_ELEMENT_DESC *layout, unsigned lcount);
+	int loadShader(PixelShader *ps, const char *fn);
+
+	int loadTextureRGBA(Texture2D *tex, const char *fn, int genmips);
+	int createTextureRGBA(Texture2D *tex, void *data, unsigned w, unsigned h, int genmips);
+
+	int initBuffer(VertexBuffer *vb, void *data, int sz);
+	int initBuffer(IndexBuffer *ib, void *data, int sz);
+	int initBuffer(UniformBuffer *ub, void *data, int sz);
+
+	void updateBuffer(VertexBuffer *vb, void *data) {
+		device->UpdateSubresource(vb->buf, 0, NULL, data, 0, 0);
+	}
+	void updateBuffer(IndexBuffer *ib, void *data) {
+		device->UpdateSubresource(ib->buf, 0, NULL, data, 0, 0);
+	}
+	void updateBuffer(UniformBuffer *ub, void *data) {
+		device->UpdateSubresource(ub->buf, 0, NULL, data, 0, 0);
 	}
 
-	int createVtxBuffer(void *data, int sz, ID3D10Buffer **buf) {
-		return createBuffer(D3D10_BIND_VERTEX_BUFFER, data, sz, buf);
+	void useShaders(PixelShader *ps, VertexShader *vs) {
+		device->PSSetShader(ps->ps);
+		device->VSSetShader(vs->vs);
+		device->IASetInputLayout(vs->layout);
 	}
-	int createIdxBuffer(void *data, int sz, ID3D10Buffer **buf) {
-		return createBuffer(D3D10_BIND_INDEX_BUFFER, data, sz, buf);
+	void useBuffer(VertexBuffer *vb, int slot, UINT stride, UINT offset) {
+		device->IASetVertexBuffers(slot, 1, &vb->buf, &stride, &offset);
 	}
-	int createConstantBuffer(int sz, ID3D10Buffer **buf) {
-		return createBuffer(D3D10_BIND_CONSTANT_BUFFER, NULL, sz, buf);
+	void useBuffer(IndexBuffer *ib) {
+		device->IASetIndexBuffer(ib->buf, DXGI_FORMAT_R16_UINT, 0);
 	}
-	int compileVertexShader(const char *fn, ID3D10VertexShader **vs, ID3D10Blob **data);
-	int compilePixelShader(const char *fn, ID3D10PixelShader **ps, ID3D10Blob **data);
+	void useBuffer(UniformBuffer *ub, int slot) {
+		device->VSSetConstantBuffers(slot, 1, &ub->buf);
+	}
+	void useTexture(Texture2D *tex, int slot) {
+		device->PSSetShaderResources(slot, 1, &tex->srv);
+	}
 
 protected:
 	int width;
@@ -100,12 +165,6 @@ private:
 	HWND hwnd;
 	HINSTANCE hinstance;
 	int active;
-};
-
-struct Texture2D {
-	ID3D10Texture2D *tex;
-	ID3D10ShaderResourceView *srv;
-	Texture2D() : tex(NULL), srv(NULL) {};
 };
 
 int compileShader(const char *fn, const char *profile, ID3D10Blob **shader);

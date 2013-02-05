@@ -23,7 +23,7 @@ VS_OUTPUT main(
 
 	// adjust unit texture coord to font cell rectangle
 	float tx = (c % 16);
-	float ty = (15 - c / 16);
+	float ty = (c / 16);
 
 	output.Position = mul(MVP, pos); 
 	output.TexCoord =
@@ -32,7 +32,7 @@ VS_OUTPUT main(
 		// move to correct character
 		+ float2(tx/16.0,ty/16.0)
 		// offset to avoid cruft
-		+ float2(1.0/256.0,-1.0/256.0);
+		+ float2(1.0/256.0,1.0/256.0);
 
 	// discard via clipping
 	if (c == 0) output.Position.z = -1.1;

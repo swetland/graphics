@@ -28,19 +28,14 @@ private:
 	int height;
 	int dirty;
 
-	ID3D10InputLayout *layout;
-	ID3D10Buffer *vtxbuf;
-	ID3D10Buffer *charbuf;
-	ID3D10PixelShader *PS;
-	ID3D10VertexShader *VS;
-	ID3D10ShaderResourceView *texture;
-	ID3D10Buffer *cbuf;
+	UniformBuffer ubuf;
+	VertexBuffer vtx;
+	VertexBuffer cbuf;
+	PixelShader ps;
+	VertexShader vs;
+	Texture2D texture;
 
 	unsigned char *grid;
-
-	UINT stride[2];
-	UINT offset[2];
-	ID3D10Buffer *buffer[2];
 };
 
 #endif

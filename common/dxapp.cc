@@ -374,9 +374,122 @@ int App::initD3D(void) {
 
 // ----
 
-int App::createTextureRGBA(
-	void *data, int tw, int th, int genmips,
-	ID3D10ShaderResourceView **srv) {
+static int _compile_shader(const char *fn, void *data, unsigned sz,
+	const char *profile, ID3D10Blob **shader) {
+	HRESULT hr;
+	ID3D10Blob *errors = NULL;
+
+	hr = D3D10CompileShader((char*) data, sz, fn,
+		NULL, NULL, "main", profile,
+		D3D10_SHADER_ENABLE_STRICTNESS,
+		shader, &errors);
+
+	if (errors) {
+		printx("--- error compiling '%s' ---\n", fn);
+		OutputDebugString((char*) errors->GetBufferPointer());
+		errors->Release();
+		return -1;
+	}
+	if (FAILED(hr))
+		return error("cannot compile shader 0x%08x", hr);
+
+	printx("Compiled '%s' to %d bytes\n", fn, (*shader)->GetBufferSize());
+	return 0;
+}
+
+int App::compileShader(VertexShader *_vs, const char *fn,
+	void *data, unsigned len, int raw,
+	D3D10_INPUT_ELEMENT_DESC *desc, unsigned dcount) {
+	ID3D10VertexShader *vs = NULL;
+	ID3D10InputLayout *layout = NULL;
+	ID3D10Blob *bin = NULL;
+	HRESULT hr;
+
+	if (raw) {
+		hr = device->CreateVertexShader(data, len, &vs);
+		if (FAILED(hr))
+			return error("failed to create shader '%s' 0x%08x", fn, hr);
+		hr = device->CreateInputLayout(desc, dcount, data, len, &layout);
+	} else {
+		if (_compile_shader(fn, data, len, "vs_4_0", &bin))
+			return -1;
+		hr = device->CreateVertexShader(bin->GetBufferPointer(), bin->GetBufferSize(), &vs);
+		if (FAILED(hr)) {
+			bin->Release();
+			return error("failed to create shader '%s' 0x%08x", fn, hr);
+		}
+		hr = device->CreateInputLayout(desc, dcount,
+			bin->GetBufferPointer(), bin->GetBufferSize(), &layout);
+		bin->Release();
+	}
+	if (FAILED(hr))
+		return error("failed to bind layout for '%s' 0x%08x", fn, hr);
+	if (_vs->vs)
+		_vs->vs->Release();
+	if (_vs->layout)
+		_vs->layout->Release();
+	_vs->vs = vs;
+	_vs->layout = layout;
+	_vs->desc = desc;
+	_vs->dcount = dcount;
+	return 0;
+}
+
+int App::compileShader(PixelShader *_ps, const char *fn,
+	void *data, unsigned len, int raw) {
+	ID3D10PixelShader *ps;
+	HRESULT hr;
+	if (raw) {
+		hr = device->CreatePixelShader(data, len, &ps);
+	} else {
+		ID3D10Blob *bin = NULL;
+		if (_compile_shader(fn, data, len, "ps_4_0", &bin))
+			return -1;
+		hr = device->CreatePixelShader(bin->GetBufferPointer(), bin->GetBufferSize(), &ps);
+		bin->Release();
+	}
+	if (FAILED(hr))
+		return error("failed to create shader '%s' 0x%08x", fn, hr);
+	if (_ps->ps)
+		_ps->ps->Release();
+	_ps->ps = ps;
+	return 0;
+}
+
+// TODO choose raw based on content or extension
+int App::loadShader(VertexShader *vs, const char *fn,
+	D3D10_INPUT_ELEMENT_DESC *layout, unsigned lcount) {
+	void *data;
+	unsigned sz;
+	if (!(data = load_file(fn, &sz)))
+		return -1;
+	int r = compileShader(vs, fn, data, sz, 0, layout, lcount);
+	free(data);
+	return r;
+}
+
+int App::loadShader(PixelShader *ps, const char *fn) {
+	void *data;
+	unsigned sz;
+	if (!(data = load_file(fn, &sz)))
+		return -1;
+	int r = compileShader(ps, fn, data, sz, 0);
+	free(data);
+	return r;
+}
+
+int App::loadTextureRGBA(Texture2D *tex, const char *fn, int genmips) {
+	void *data;
+	unsigned dw, dh;
+	int r;
+	if (!(data = load_png_rgba(fn, &dw, &dh, 0)))
+		return -1;
+	r = createTextureRGBA(tex, data, dw, dh, genmips);
+	free(data);
+	return r;
+}
+
+int App::createTextureRGBA(Texture2D *tex, void *data, unsigned tw, unsigned th, int genmips) {
 	int stride = tw * 4;
 	int size = stride * th;
 	HRESULT hr;
@@ -411,25 +524,26 @@ int App::createTextureRGBA(
 	srvd.ViewDimension = D3D10_SRV_DIMENSION_TEXTURE2D;
 	srvd.Texture2D.MipLevels = genmips ? -1 : 1;
 	srvd.Texture2D.MostDetailedMip = 0;
-	hr = device->CreateShaderResourceView(texture, &srvd, srv);
+	hr = device->CreateShaderResourceView(texture, &srvd, &tex->srv);
 	if (FAILED(hr)) {
-		texture->Release();
+		tex->tex->Release();
+		tex->tex = NULL;
 		return error("failed to create shader resource view 0x%08x",hr);
 	}
 
 	if (genmips) {
 		device->UpdateSubresource(texture, 0, NULL, data, stride, size);
-		device->GenerateMips(*srv);
+		device->GenerateMips(tex->srv);
 	}
 
-	// TODO: track and release textures
 	return 0;
 }
 
-int App::createBuffer(D3D10_BIND_FLAG flag,
+int _create_buffer(ID3D10Device *device, D3D10_BIND_FLAG flag,
 	void *data, int sz, ID3D10Buffer **buf) {
 	HRESULT hr;
-	
+	ID3D10Buffer *old = *buf;
+
 	D3D10_BUFFER_DESC bd;
 	bd.Usage = D3D10_USAGE_DEFAULT;
 	bd.ByteWidth = sz;
@@ -442,69 +556,20 @@ int App::createBuffer(D3D10_BIND_FLAG flag,
 	hr = device->CreateBuffer(&bd, data ? &idata : NULL, buf);
 	if (FAILED(hr))
 		return error("create buffer failed 0x%08x", hr);
-
+	if (old != NULL)
+		old->Release();
 	return 0;
 }
 
-int compileShader(const char *fn, const char *profile, ID3D10Blob **shader) {
-	HRESULT hr;
-	ID3D10Blob *errors = NULL;
-	void *data;
-	unsigned dsz;
-
-	if (!(data = load_file(fn, &dsz)))
-		return error("cannot load shader");
-
-	hr = D3D10CompileShader((char*) data, dsz, fn,
-		NULL, NULL, "main", profile,
-		D3D10_SHADER_ENABLE_STRICTNESS,
-		shader, &errors);
-
-	free(data);
-
-	if (errors) {
-		printx("--- error compiling '%s' ---\n", fn);
-		OutputDebugString((char*) errors->GetBufferPointer());
-		errors->Release();
-		return -1;
-	}
-	if (FAILED(hr))
-		return error("cannot compile shader 0x%08x", hr);
-
-	printx("Compiled '%s' to %d bytes\n", fn, (*shader)->GetBufferSize());
-	return 0;
+int App::initBuffer(VertexBuffer *vb, void *data, int sz) {
+	return _create_buffer(device, D3D10_BIND_VERTEX_BUFFER, data, sz, &vb->buf);
 }
-
-int App::compileVertexShader(const char *fn, ID3D10VertexShader **vs, ID3D10Blob **_data) {
-	ID3D10Blob *data = NULL;
-	HRESULT hr;
-	if (compileShader(fn, "vs_4_0", &data))
-		return -1;
-	hr = device->CreateVertexShader(data->GetBufferPointer(), data->GetBufferSize(), vs);
-	if (_data)
-		*_data = data;
-	else
-		data->Release();
-	if (FAILED(hr))
-		return error("failed to create shader '%s' 0x%08x", fn, hr);
-	return 0;
+int App::initBuffer(IndexBuffer *ib, void *data, int sz) {
+	return _create_buffer(device, D3D10_BIND_INDEX_BUFFER, data, sz, &ib->buf);
 }
-
-int App::compilePixelShader(const char *fn, ID3D10PixelShader **ps, ID3D10Blob **_data) {
-	ID3D10Blob *data = NULL;
-	HRESULT hr;
-	if (compileShader(fn, "ps_4_0", &data))
-		return -1;
-	hr = device->CreatePixelShader(data->GetBufferPointer(), data->GetBufferSize(), ps);
-	if (_data)
-		*_data = data;
-	else
-		data->Release();
-	if (FAILED(hr))
-		return error("failed to create shader '%s' 0x%08x", fn, hr);
-	return 0;
+int App::initBuffer(UniformBuffer *ub, void *data, int sz) {
+	return _create_buffer(device, D3D10_BIND_CONSTANT_BUFFER, data, sz, &ub->buf);
 }
-
 
 // ----
 
