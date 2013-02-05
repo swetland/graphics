@@ -88,14 +88,14 @@
     <ClCompile Include="..\common\matrix.cc" />
     <ClCompile Include="..\common\savepng.cc" />
     <ClCompile Include="..\common\simplexnoise.cc" />
+    <ClCompile Include="..\common\textgrid.cc" />
     <ClCompile Include="hello.cc" />
-    <ClCompile Include="textgrid.cc" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\app.h" />
     <ClInclude Include="..\common\matrix.h" />
     <ClInclude Include="..\common\util.h" />
-    <ClInclude Include="textgrid.h" />
+    <ClInclude Include="..\common\textgrid.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="SimplePS.hlsl">
@@ -104,13 +104,18 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="TextPS.hlsl">
+    <FxCompile Include="..\common\TextPS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutDir)%(Filename).h</HeaderFileOutput>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">codeTextPS</VariableName>
     </FxCompile>
-    <FxCompile Include="TextVS.hlsl">
+    <FxCompile Include="..\common\TextVS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutDir)%(Filename).h</HeaderFileOutput>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">codeTextVS</VariableName>
+      <DisableOptimizations Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</DisableOptimizations>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

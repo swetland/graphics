@@ -22,6 +22,13 @@
 #include "matrix.h"
 #include "textgrid.h"
 
+#define BUILTIN 1
+
+#if BUILTIN
+#include "TextVS.h"
+#include "TextPS.h"
+#endif
+
 static D3D10_INPUT_ELEMENT_DESC text_layout_desc[] = {
 	{ "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D10_INPUT_PER_VERTEX_DATA, 0 },
 	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D10_INPUT_PER_VERTEX_DATA, 0 },
@@ -70,11 +77,27 @@ int TextGrid::init(App *a, ID3D10Device *device, int w, int h) {
 		return -1;
 	if (a->createVtxBuffer(grid, width * height, &charbuf))
 		return -1;
+	if (a->createConstantBuffer(sizeof(cb), &cbuf))
+		return -1;
+#if BUILTIN
+	if (FAILED(device->CreatePixelShader(codeTextPS, sizeof(codeTextPS), &PS)))
+		return -1;
+	if (FAILED(device->CreateVertexShader(codeTextVS, sizeof(codeTextVS), &VS)))
+		return -1;
+	hr = device->CreateInputLayout(text_layout_desc,
+		sizeof(text_layout_desc) / sizeof(text_layout_desc[0]),
+		codeTextVS, sizeof(codeTextVS), &layout);
+#else
 	if (a->compilePixelShader("TextPS.hlsl", &PS, NULL))
 		return -1;
 	if (a->compileVertexShader("TextVS.hlsl", &VS, &blob))
 		return -1;
-	if (a->createConstantBuffer(sizeof(cb), &cbuf))
+	hr = device->CreateInputLayout(text_layout_desc,
+		sizeof(text_layout_desc) / sizeof(text_layout_desc[0]),
+		blob->GetBufferPointer(), blob->GetBufferSize(), &layout);
+	blob->Release();
+#endif
+	if (FAILED(hr))
 		return -1;
 
 	cb.proj.setOrtho(0, w, 0, h, -1, 1);	
@@ -82,12 +105,6 @@ int TextGrid::init(App *a, ID3D10Device *device, int w, int h) {
 	cb.ch = height;
 	a->updateBuffer(cbuf, &cb);
 
-	hr = device->CreateInputLayout(text_layout_desc,
-		sizeof(text_layout_desc) / sizeof(text_layout_desc[0]),
-		blob->GetBufferPointer(), blob->GetBufferSize(), &layout);
-	blob->Release();
-	if (FAILED(hr))
-		return -1;
 	stride[0] = 16;
 	stride[1] = 1;
 	offset[0] = 0;
