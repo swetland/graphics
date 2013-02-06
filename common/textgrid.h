@@ -18,8 +18,8 @@
 
 class TextGrid {
 public:
-	int init(App *a, ID3D10Device *device, int w, int h);
-	void render(App *a, ID3D10Device *device);
+	int init(App *a, int w, int h);
+	void render(App *a);
 	void clear(void);
 	void printf(int x, int y, const char *fmt, ...);
 

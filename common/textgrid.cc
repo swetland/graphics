@@ -29,10 +29,10 @@
 #include "TextPS.h"
 #endif
 
-static D3D10_INPUT_ELEMENT_DESC text_layout_desc[] = {
-	{ "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D10_INPUT_PER_VERTEX_DATA, 0 },
-	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 8, D3D10_INPUT_PER_VERTEX_DATA, 0 },
-	{ "CHARACTER", 0, DXGI_FORMAT_R8_UINT, 1, 0, D3D10_INPUT_PER_INSTANCE_DATA, 1 },
+static AttribInfo text_layout_desc[] = {
+	{ "POSITION",  0, FMT_32x2_FLOAT, 0, 0, VERTEX_DATA, 0 },
+	{ "TEXCOORD",  0, FMT_32x2_FLOAT, 0, 8, VERTEX_DATA, 0 },
+	{ "CHARACTER", 0, FMT_8x1_UINT,   1, 0, INSTANCE_DATA, 1 },
 };
 
 static float unit_box_2d[] = {
@@ -44,7 +44,7 @@ static float unit_box_2d[] = {
 	0, 1,  0, 0,
 };
 
-int TextGrid::init(App *a, ID3D10Device *device, int w, int h) {
+int TextGrid::init(App *a, int w, int h) {
 	void *data;
 	unsigned int dw, dh;
 	HRESULT hr;
@@ -98,7 +98,7 @@ int TextGrid::init(App *a, ID3D10Device *device, int w, int h) {
 	return 0;
 }
 
-void TextGrid::render(App *a, ID3D10Device *device) {
+void TextGrid::render(App *a) {
 	if (dirty) {
 		dirty = 0;
 		a->updateBuffer(&cbuf, grid);
@@ -108,7 +108,7 @@ void TextGrid::render(App *a, ID3D10Device *device) {
 	a->useTexture(&texture, 0);
 	a->useBuffer(&vtx, 0, 16, 0);
 	a->useBuffer(&cbuf, 1, 1, 0);
-	device->DrawInstanced(6, width * height, 0, 0);
+	a->drawInstanced(6, width * height);
 }
 
 void TextGrid::clear(void) {

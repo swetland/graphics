@@ -21,11 +21,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static D3D10_INPUT_ELEMENT_DESC obj_layout[] = {
-	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,  0, D3D10_INPUT_PER_VERTEX_DATA, 0 },
-	{ "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D10_INPUT_PER_VERTEX_DATA, 0 },
-	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, 24, D3D10_INPUT_PER_VERTEX_DATA, 0 },
-	{ "LOCATION", 0, DXGI_FORMAT_R8G8B8A8_SNORM, 1,  0, D3D10_INPUT_PER_INSTANCE_DATA, 1 },
+static AttribInfo obj_layout[] = {
+	{ "POSITION", 0, FMT_32x3_FLOAT, 0,  0, VERTEX_DATA, 0 },
+	{ "NORMAL",   0, FMT_32x3_FLOAT, 0, 12, VERTEX_DATA, 0 },
+	{ "TEXCOORD", 0, FMT_32x2_FLOAT, 0, 24, VERTEX_DATA, 0 },
+	{ "LOCATION", 0, FMT_8x4_SNORM,  1,  0, INSTANCE_DATA, 1 },
 };
 
 static float locationx[] = {
@@ -133,7 +133,7 @@ int TestApp::init(void) {
 	build();
 	zoom = SZ;
 
-	if (text.init(this, device, 64, 64))
+	if (text.init(this, 64, 64))
 		return -1;
 
 	return 0;
@@ -176,17 +176,12 @@ oops:
 	if (update)
 		build();
 
-	float rgba[4] = { 0.0f, 0.125f, 0.3f, 1.0f }; 
-	device->ClearRenderTargetView(targetView, rgba);
-	device->ClearDepthStencilView(depthView, D3D10_CLEAR_DEPTH, 1.0f, 0 );
-
 	useShaders(&ps, &vs);
 	useBuffer(&ubuf, 0);
 	useBuffer(&vbuf, 0, 32, 0);
 	useBuffer(&lbuf, 1, 4, 0);
 	useBuffer(&ibuf);
 
-	device->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	struct {
 		mat4 mvp;
 		mat4 mv;
@@ -200,16 +195,14 @@ oops:
 	cb0.mvp = world * view * proj;
 	cb0.mv = world * view;
 	updateBuffer(&ubuf, &cb0);
-	device->DrawIndexedInstanced(m->icount, lcount, 0, 0, 0);
+	drawIndexedInstanced(m->icount, lcount);
 
 	text.clear();
 	text.printf(0, 0, "rx: %8.4f", rx);
 	text.printf(0, 1, "ry: %8.4f", ry);
 	text.printf(0, 2, "zm: %8.4f", zoom);
 	text.printf(0, -1, "hello.cc");
-	text.render(this, device);
-
-	swapchain->Present(1, 0);
+	text.render(this);
 }
 
 App *createApp(void) {

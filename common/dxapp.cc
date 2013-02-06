@@ -149,7 +149,14 @@ void App::eventloop(void) {
 				((state.rgbButtons[1] >> 6) & 2) |
 				((state.rgbButtons[2] >> 5) & 4);
 		}
-		app->render();		
+
+		float rgba[4] = { 0.0f, 0.125f, 0.3f, 1.0f }; 
+		device->ClearRenderTargetView(targetView, rgba);
+		device->ClearDepthStencilView(depthView, D3D10_CLEAR_DEPTH, 1.0f, 0 );
+
+		app->render();
+
+		swapchain->Present(1, 0);
 		frame++;
 	}
 }
@@ -302,6 +309,8 @@ int App::reconfigure(int init) {
 	vp.TopLeftY = 0;
 	device->RSSetViewports(1, &vp);
 
+	device->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
 	device->OMSetRenderTargets(1, &targetView, depthView);
 
 	return 0;
@@ -399,7 +408,7 @@ static int _compile_shader(const char *fn, void *data, unsigned sz,
 
 int App::compileShader(VertexShader *_vs, const char *fn,
 	void *data, unsigned len, int raw,
-	D3D10_INPUT_ELEMENT_DESC *desc, unsigned dcount) {
+	AttribInfo *desc, unsigned dcount) {
 	ID3D10VertexShader *vs = NULL;
 	ID3D10InputLayout *layout = NULL;
 	ID3D10Blob *bin = NULL;
@@ -409,7 +418,8 @@ int App::compileShader(VertexShader *_vs, const char *fn,
 		hr = device->CreateVertexShader(data, len, &vs);
 		if (FAILED(hr))
 			return error("failed to create shader '%s' 0x%08x", fn, hr);
-		hr = device->CreateInputLayout(desc, dcount, data, len, &layout);
+		hr = device->CreateInputLayout((D3D10_INPUT_ELEMENT_DESC*) desc,
+			dcount, data, len, &layout);
 	} else {
 		if (_compile_shader(fn, data, len, "vs_4_0", &bin))
 			return -1;
@@ -418,7 +428,7 @@ int App::compileShader(VertexShader *_vs, const char *fn,
 			bin->Release();
 			return error("failed to create shader '%s' 0x%08x", fn, hr);
 		}
-		hr = device->CreateInputLayout(desc, dcount,
+		hr = device->CreateInputLayout((D3D10_INPUT_ELEMENT_DESC*) desc, dcount,
 			bin->GetBufferPointer(), bin->GetBufferSize(), &layout);
 		bin->Release();
 	}
@@ -430,7 +440,7 @@ int App::compileShader(VertexShader *_vs, const char *fn,
 		_vs->layout->Release();
 	_vs->vs = vs;
 	_vs->layout = layout;
-	_vs->desc = desc;
+	_vs->desc = (D3D10_INPUT_ELEMENT_DESC*) desc;
 	_vs->dcount = dcount;
 	return 0;
 }
@@ -458,7 +468,7 @@ int App::compileShader(PixelShader *_ps, const char *fn,
 
 // TODO choose raw based on content or extension
 int App::loadShader(VertexShader *vs, const char *fn,
-	D3D10_INPUT_ELEMENT_DESC *layout, unsigned lcount) {
+	AttribInfo *layout, unsigned lcount) {
 	void *data;
 	unsigned sz;
 	if (!(data = load_file(fn, &sz)))

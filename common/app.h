@@ -32,6 +32,38 @@
 #define SHADER_DEBUG_FLAGS 0
 #endif
 
+enum {
+	FMT_32x4_FLOAT = DXGI_FORMAT_R32G32B32A32_FLOAT,
+	FMT_32x3_FLOAT = DXGI_FORMAT_R32G32B32_FLOAT,
+	FMT_32x2_FLOAT = DXGI_FORMAT_R32G32_FLOAT,
+	FMT_32x1_FLOAT = DXGI_FORMAT_R32_FLOAT,
+
+	FMT_8x4_SNORM = DXGI_FORMAT_R8G8B8A8_SNORM,
+
+	FMT_8x4_UNORM = DXGI_FORMAT_R8G8B8A8_UNORM,
+	FMT_8x2_UNORM = DXGI_FORMAT_R8G8_UNORM,
+	FMT_8x1_UNORM = DXGI_FORMAT_R8_UNORM,
+
+	FMT_8x4_UINT = DXGI_FORMAT_R8G8B8A8_UINT,
+	FMT_8x2_UINT = DXGI_FORMAT_R8G8_UINT,
+	FMT_8x1_UINT = DXGI_FORMAT_R8_UINT,
+};
+
+enum {
+	VERTEX_DATA = D3D10_INPUT_PER_VERTEX_DATA,
+	INSTANCE_DATA = D3D10_INPUT_PER_INSTANCE_DATA,
+};
+
+struct AttribInfo {
+	const char *name;
+	unsigned nidx;
+	unsigned format;
+	unsigned slot;
+	unsigned offset;
+	unsigned type;
+	unsigned divisor;
+};
+
 struct PixelShader {
 	ID3D10PixelShader *ps;
 	PixelShader() : ps(NULL) {};
@@ -92,11 +124,11 @@ public:
 	// TODO: move away from D3D10_INPUT...
 	int compileShader(VertexShader *vs, const char *fn,
 		void *data, unsigned len, int raw,
-		D3D10_INPUT_ELEMENT_DESC *layout, unsigned lcount);
+		AttribInfo *layout, unsigned lcount);
 	int compileShader(PixelShader *ps, const char *fn,
 		void *data, unsigned len, int raw);
 	int loadShader(VertexShader *vs, const char *fn,
-		D3D10_INPUT_ELEMENT_DESC *layout, unsigned lcount);
+		AttribInfo *layout, unsigned lcount);
 	int loadShader(PixelShader *ps, const char *fn);
 
 	int loadTextureRGBA(Texture2D *tex, const char *fn, int genmips);
@@ -133,7 +165,12 @@ public:
 	void useTexture(Texture2D *tex, int slot) {
 		device->PSSetShaderResources(slot, 1, &tex->srv);
 	}
-
+	void drawIndexedInstanced(unsigned numindices, unsigned numinstances) {
+		device->DrawIndexedInstanced(numindices, numinstances, 0, 0, 0);
+	}
+	void drawInstanced(unsigned numvertices, unsigned numinstances) {
+		device->DrawInstanced(numvertices, numinstances, 0, 0);
+	}
 protected:
 	int width;
 	int height;
