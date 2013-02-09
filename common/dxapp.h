@@ -183,6 +183,8 @@ public:
 	void drawInstanced(unsigned numvertices, unsigned numinstances) {
 		device->DrawInstanced(numvertices, numinstances, 0, 0);
 	}
+
+	void setBlend(int enabled);
 protected:
 	int width;
 	int height;
@@ -204,7 +206,9 @@ protected:
 	ID3D10RasterizerState *rsDefault;
 	ID3D10DepthStencilState *dsDepthEnabled;
 	ID3D10DepthStencilState *dsDepthDisabled;
-
+	ID3D10SamplerState *defaultSamplerState;
+	ID3D10BlendState *bsAlpha;
+	ID3D10BlendState *bsOpaque;
 private:
 	InputConfiguration *ic;
 	LPDIRECTINPUT8 dinput;

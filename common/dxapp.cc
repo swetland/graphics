@@ -15,6 +15,7 @@
 
 #include <stdio.h>
 #include <stdarg.h>
+#include <float.h>
 
 #include "util.h"
 #include "app.h"
@@ -312,7 +313,6 @@ int App::reconfigure(int init) {
 	device->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	device->OMSetRenderTargets(1, &targetView, depthView);
-
 	return 0;
 }
 
@@ -377,8 +377,52 @@ int App::initD3D(void) {
 	if (FAILED(hr))
 		return -1;
 
+	D3D10_SAMPLER_DESC sd;
+	//sd.Filter = D3D10_FILTER_MIN_MAG_MIP_LINEAR;
+	sd.Filter = D3D10_FILTER_MIN_MAG_MIP_POINT;
+	sd.AddressU = D3D10_TEXTURE_ADDRESS_CLAMP;
+	sd.AddressV = D3D10_TEXTURE_ADDRESS_CLAMP;
+	sd.AddressW = D3D10_TEXTURE_ADDRESS_CLAMP;
+	sd.MipLODBias = 0;
+	sd.MaxAnisotropy = 1;
+	sd.ComparisonFunc = D3D10_COMPARISON_NEVER;
+	sd.BorderColor[0] = 1;
+	sd.BorderColor[1] = 1;
+	sd.BorderColor[2] = 1;
+	sd.BorderColor[3] = 1;
+	sd.MinLOD = -FLT_MAX;
+	sd.MaxLOD = FLT_MAX;
+	hr = device->CreateSamplerState(&sd, &defaultSamplerState);
+	if (FAILED(hr))
+		return -1;
+
+	D3D10_BLEND_DESC bd;
+	memset(&bd, 0, sizeof(bd));
+	bd.SrcBlend = D3D10_BLEND_SRC_ALPHA;
+	bd.DestBlend = D3D10_BLEND_INV_SRC_ALPHA;
+	bd.BlendOp = D3D10_BLEND_OP_ADD;
+	bd.SrcBlendAlpha = D3D10_BLEND_ONE;
+	bd.DestBlendAlpha = D3D10_BLEND_ZERO;
+	bd.BlendOpAlpha = D3D10_BLEND_OP_ADD;
+	bd.BlendEnable[0] = true;
+	bd.RenderTargetWriteMask[0] = D3D10_COLOR_WRITE_ENABLE_ALL;
+	device->CreateBlendState(&bd, &bsAlpha);
+
+	bd.SrcBlend = D3D10_BLEND_ONE;
+	bd.DestBlend = D3D10_BLEND_ZERO;
+	bd.BlendEnable[0] = false;
+	device->CreateBlendState(&bd, &bsOpaque);
+
 	device->RSSetState(rsDefault);
+	device->PSSetSamplers(0, 1, &defaultSamplerState);
 	return S_OK;
+}
+
+void App::setBlend(int enable) {
+	if (enable)
+		device->OMSetBlendState(bsAlpha, NULL, 0xffffffff);
+	else
+		device->OMSetBlendState(bsOpaque, NULL, 0xffffffff);
 }
 
 // ----
