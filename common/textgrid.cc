@@ -22,7 +22,7 @@
 #include "matrix.h"
 #include "textgrid.h"
 
-#define BUILTIN 1
+#define BUILTIN 0
 
 #if BUILTIN
 #include "TextVS.h"
@@ -45,10 +45,6 @@ static float unit_box_2d[] = {
 };
 
 int TextGrid::init(App *a, int w, int h) {
-	void *data;
-	unsigned int dw, dh;
-	HRESULT hr;
-
 	struct {
 		mat4 proj;
 		unsigned cw;
@@ -83,9 +79,9 @@ int TextGrid::init(App *a, int w, int h) {
 		text_layout_desc, sizeof(text_layout_desc)/sizeof(text_layout_desc[0])))
 		return -1;
 #else
-	if (a->loadShader(&ps, "../common/TextPS.hlsl"))
+	if (a->loadShader(&ps, "../common/TextPS.glsl"))
 		return -1;
-	if (a->loadShader(&vs, "../common/TextVS.hlsl",
+	if (a->loadShader(&vs, "../common/TextVS.glsl",
 		text_layout_desc, sizeof(text_layout_desc)/sizeof(text_layout_desc[0])))
 		return -1;
 #endif
@@ -95,6 +91,14 @@ int TextGrid::init(App *a, int w, int h) {
 	cb.ch = height;
 	a->updateBuffer(&ubuf, &cb);
 
+	a->initConfig(&cfg, &vs, &ps);
+
+	a->useConfig(&cfg);
+	a->useBuffer(&ubuf, 0);
+	a->useTexture(&texture, 0);
+	a->useBuffer(&vtx, 0, 16, 0);
+	a->useBuffer(&cbuf, 1, 1, 0);
+
 	return 0;
 }
 
@@ -103,11 +107,7 @@ void TextGrid::render(App *a) {
 		dirty = 0;
 		a->updateBuffer(&cbuf, grid);
 	}
-	a->useShaders(&ps, &vs);
-	a->useBuffer(&ubuf, 0);
-	a->useTexture(&texture, 0);
-	a->useBuffer(&vtx, 0, 16, 0);
-	a->useBuffer(&cbuf, 1, 1, 0);
+	a->useConfig(&cfg);
 	a->drawInstanced(6, width * height);
 }
 

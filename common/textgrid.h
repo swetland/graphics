@@ -34,6 +34,7 @@ private:
 	PixelShader ps;
 	VertexShader vs;
 	Texture2D texture;
+	InputConfiguration cfg;
 
 	unsigned char *grid;
 };

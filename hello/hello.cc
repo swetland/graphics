@@ -36,7 +36,7 @@ static float locationx[] = {
 	4, 0, 0,
 };
 
-#define SZ 16
+#define SZ 32
 #define SZh (SZ / 2)
 #define SZe (SZ * SZ * SZ)
 #define SZb (SZe * 4)
@@ -54,7 +54,6 @@ public:
 
 private:
 	float t;
-	DWORD timeStart;
 
 	PixelShader ps;
 	VertexShader vs;
@@ -62,6 +61,7 @@ private:
 	VertexBuffer vbuf;
 	UniformBuffer ubuf;
 	VertexBuffer lbuf;
+	InputConfiguration cfg;
 
 	TextGrid text;
 	float nx,ny;
@@ -71,7 +71,9 @@ private:
 	struct model *m;
 };
 
-TestApp::TestApp() : App(), t(0.0f), timeStart(0), zoom(0), rx(0), ry(0), nx(0), ny(0) {
+TestApp::TestApp() : App(), t(0.0f), zoom(0), rx(0), ry(0), nx(0), ny(0) {
+	width = 1280;
+	height = 1024;
 }
 
 void TestApp::release(void) {
@@ -112,9 +114,9 @@ void TestApp::build(void) {
 }
 
 int TestApp::init(void) {
-	if (loadShader(&ps, "SimplePS.hlsl"))
+	if (loadShader(&ps, "SimplePS."SL ))
 		return -1;
-	if (loadShader(&vs, "SimpleVS.hlsl", obj_layout, sizeof(obj_layout) / sizeof(obj_layout[0])))
+	if (loadShader(&vs, "SimpleVS."SL, obj_layout, sizeof(obj_layout) / sizeof(obj_layout[0])))
 		return -1;
 
 	if (!(m = load_wavefront_obj("unitcubeoid.obj")))
@@ -128,11 +130,19 @@ int TestApp::init(void) {
 	if (initBuffer(&ubuf, NULL, 32 * 4))
 		return -1;
 
+	if (initConfig(&cfg, &vs, &ps))
+		return -1;
 	proj.setPerspective(D2R(90.0), width / (float) height, 0.1f, 250.0f);
 
 	build();
 	zoom = SZ;
 
+	useConfig(&cfg);
+	useBuffer(&ubuf, 0);
+	useBuffer(&vbuf, 0, 32, 0);
+	useBuffer(&lbuf, 1, 4, 0);
+	useBuffer(&ibuf);
+	
 	if (text.init(this, 64, 64))
 		return -1;
 
@@ -142,7 +152,7 @@ int TestApp::init(void) {
 static float rate = 90.0;
 
 void TestApp::render(void) {
-	UINT stride, offset;
+	unsigned stride, offset;
 	int update = 0;
 
 	if (mouseBTN & 1) {
@@ -162,25 +172,23 @@ void TestApp::render(void) {
 		if (zoom > 100.0) zoom = 100.0;
 	}
 
+#if _WIN32
 	if (keystate[DIK_A]) { nx -= 0.01; update = 1; }
 	if (keystate[DIK_D]) { nx += 0.01; update = 1; }
 	if (keystate[DIK_W]) { ny -= 0.01; update = 1; }
 	if (keystate[DIK_S]) { ny += 0.01; update = 1; }
 
 	if (keystate[DIK_P]) {
-		loadShader(&ps, "HelloPS.hlsl");
-		loadShader(&vs, "SimpleVS.hlsl", obj_layout,
+		loadShader(&ps, "HelloPS."SL);
+		loadShader(&vs, "SimpleVS."SL, obj_layout,
 			sizeof(obj_layout) / sizeof(obj_layout[0]));
 	}
 oops:
 	if (update)
 		build();
+#endif
 
-	useShaders(&ps, &vs);
-	useBuffer(&ubuf, 0);
-	useBuffer(&vbuf, 0, 32, 0);
-	useBuffer(&lbuf, 1, 4, 0);
-	useBuffer(&ibuf);
+	useConfig(&cfg);
 
 	struct {
 		mat4 mvp;
