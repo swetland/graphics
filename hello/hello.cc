@@ -177,9 +177,8 @@ void TestApp::render(void) {
 	if (keystate[DIK_D]) { nx += 0.01; update = 1; }
 	if (keystate[DIK_W]) { ny -= 0.01; update = 1; }
 	if (keystate[DIK_S]) { ny += 0.01; update = 1; }
-
 	if (keystate[DIK_P]) {
-		loadShader(&ps, "HelloPS."SL);
+		loadShader(&ps, "SimplePS."SL);
 		loadShader(&vs, "SimpleVS."SL, obj_layout,
 			sizeof(obj_layout) / sizeof(obj_layout[0]));
 	}

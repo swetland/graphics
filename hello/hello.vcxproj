@@ -93,6 +93,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\app.h" />
+    <ClInclude Include="..\common\dxapp.h" />
     <ClInclude Include="..\common\matrix.h" />
     <ClInclude Include="..\common\util.h" />
     <ClInclude Include="..\common\textgrid.h" />

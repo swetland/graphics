@@ -106,6 +106,27 @@ struct IndexBuffer {
 	~IndexBuffer() { if (buf) buf->Release(); };
 };
 
+struct InputConfiguration {
+	VertexShader *vs;
+	PixelShader *ps;
+
+	IndexBuffer *ibuf;
+	VertexBuffer *vbuf[16];
+	unsigned vstride[16];
+	unsigned voffset[16];
+	UniformBuffer *ubuf[16];
+	Texture2D *tex[16];
+
+	int vcount;
+	int ucount;
+	int tcount;
+
+	InputConfiguration() : vs(NULL), ps(NULL), vcount(0), ucount(0), tcount(0), ibuf(NULL) {
+		memset(vbuf, 0, sizeof(vbuf));
+		memset(ubuf, 0, sizeof(ubuf));
+	}
+};
+
 class App {
 public:
 	App();
@@ -136,6 +157,7 @@ public:
 	int loadTextureRGBA(Texture2D *tex, const char *fn, int genmips);
 	int createTextureRGBA(Texture2D *tex, void *data, unsigned w, unsigned h, int genmips);
 
+	int initConfig(InputConfiguration *ic, VertexShader *vs, PixelShader *ps);
 	int initBuffer(VertexBuffer *vb, void *data, int sz);
 	int initBuffer(IndexBuffer *ib, void *data, int sz);
 	int initBuffer(UniformBuffer *ub, void *data, int sz);
@@ -150,23 +172,11 @@ public:
 		device->UpdateSubresource(ub->buf, 0, NULL, data, 0, 0);
 	}
 
-	void useShaders(PixelShader *ps, VertexShader *vs) {
-		device->PSSetShader(ps->ps);
-		device->VSSetShader(vs->vs);
-		device->IASetInputLayout(vs->layout);
-	}
-	void useBuffer(VertexBuffer *vb, int slot, UINT stride, UINT offset) {
-		device->IASetVertexBuffers(slot, 1, &vb->buf, &stride, &offset);
-	}
-	void useBuffer(IndexBuffer *ib) {
-		device->IASetIndexBuffer(ib->buf, DXGI_FORMAT_R16_UINT, 0);
-	}
-	void useBuffer(UniformBuffer *ub, int slot) {
-		device->VSSetConstantBuffers(slot, 1, &ub->buf);
-	}
-	void useTexture(Texture2D *tex, int slot) {
-		device->PSSetShaderResources(slot, 1, &tex->srv);
-	}
+	void useConfig(InputConfiguration *ic);
+	void useBuffer(VertexBuffer *vb, int slot, UINT stride, UINT offset);
+	void useBuffer(IndexBuffer *ib);
+	void useBuffer(UniformBuffer *ub, int slot);
+	void useTexture(Texture2D *tex, int slot);
 	void drawIndexedInstanced(unsigned numindices, unsigned numinstances) {
 		device->DrawIndexedInstanced(numindices, numinstances, 0, 0, 0);
 	}
@@ -196,6 +206,7 @@ protected:
 	ID3D10DepthStencilState *dsDepthDisabled;
 
 private:
+	InputConfiguration *ic;
 	LPDIRECTINPUT8 dinput;
 	LPDIRECTINPUTDEVICE8 dkeyboard;
 	LPDIRECTINPUTDEVICE8 dmouse;

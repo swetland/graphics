@@ -549,6 +549,56 @@ int App::createTextureRGBA(Texture2D *tex, void *data, unsigned tw, unsigned th,
 	return 0;
 }
 
+int App::initConfig(InputConfiguration *ic, VertexShader *vs, PixelShader *ps) {
+	ic->vs = vs;
+	ic->ps = ps;
+	return 0;
+};
+void App::useConfig(InputConfiguration *_ic) {
+	int i;
+	ic = _ic;
+	ID3D10Buffer *buf[16];
+	ID3D10ShaderResourceView *srv[16];
+
+	device->PSSetShader(ic->ps->ps);
+	device->VSSetShader(ic->vs->vs);
+	device->IASetInputLayout(ic->vs->layout);
+	for (i = 0; i < ic->vcount; i++)
+		buf[i] = ic->vbuf[i]->buf;
+	device->IASetVertexBuffers(0, ic->vcount, buf, ic->vstride, ic->voffset);
+	for (i = 0; i < ic->ucount; i++)
+		buf[i] = ic->ubuf[i]->buf;
+	device->VSSetConstantBuffers(0, ic->ucount, buf);
+	if (ic->tcount) {
+		for (i = 0; i < ic->tcount; i++)
+			srv[i] = ic->tex[i]->srv;
+		device->PSSetShaderResources(0, ic->tcount, srv);
+	}
+	if (ic->ibuf)
+		device->IASetIndexBuffer(ic->ibuf->buf, DXGI_FORMAT_R16_UINT, 0);
+}
+
+void App::useBuffer(VertexBuffer *vb, int slot, UINT stride, UINT offset) {
+	ic->vbuf[slot] = vb;
+	ic->vstride[slot] = stride;
+	ic->voffset[slot] = offset;
+	if (slot >= ic->vcount)
+		ic->vcount = slot + 1;
+}
+void App::useBuffer(IndexBuffer *ib) {
+	ic->ibuf = ib;
+}
+void App::useBuffer(UniformBuffer *ub, int slot) {
+	ic->ubuf[slot] = ub;
+	if (slot >= ic->ucount)
+		ic->ucount = slot + 1;
+}
+void App::useTexture(Texture2D *tex, int slot) {
+	ic->tex[slot] = tex;
+	if (slot >= ic->tcount)
+		ic->tcount = slot + 1;
+}
+
 int _create_buffer(ID3D10Device *device, D3D10_BIND_FLAG flag,
 	void *data, int sz, ID3D10Buffer **buf) {
 	HRESULT hr;
