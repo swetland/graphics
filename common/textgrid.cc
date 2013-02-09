@@ -71,17 +71,17 @@ int TextGrid::init(App *a, int w, int h) {
 	if (a->initBuffer(&ubuf, NULL, sizeof(cb)))
 		return -1;
 #if BUILTIN
-	if (a->compileShader(&ps, "TextPS.hlsl",
+	if (a->compileShader(&ps, "TextPS."SL,
 		(void*) codeTextPS, sizeof(codeTextPS), 1))
 		return -1;
-	if (a->compileShader(&vs, "TextVS.hlsl",
+	if (a->compileShader(&vs, "TextVS."SL,
 		(void*) codeTextVS, sizeof(codeTextVS), 1,
 		text_layout_desc, sizeof(text_layout_desc)/sizeof(text_layout_desc[0])))
 		return -1;
 #else
-	if (a->loadShader(&ps, "../common/TextPS.glsl"))
+	if (a->loadShader(&ps, "../common/TextPS."SL))
 		return -1;
-	if (a->loadShader(&vs, "../common/TextVS.glsl",
+	if (a->loadShader(&vs, "../common/TextVS."SL,
 		text_layout_desc, sizeof(text_layout_desc)/sizeof(text_layout_desc[0])))
 		return -1;
 #endif
