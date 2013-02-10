@@ -188,6 +188,8 @@ void config_attr_info(GLAttrInfo *ai, unsigned count, int vidx, unsigned stride)
 	unsigned n;
 	for (n = 0; n < count; n++, ai++) {
 		if (ai->vidx != vidx) continue;
+		if (ai->index < 0)
+			continue;
 		if (ai->kind == KIND_ATTRIB_POINTER) {
 			printf("VTX ATR idx=%d sz=%d type=%d norm=%d stride=%d off=%d\n",
 				ai->index, ai->size, ai->type, ai->normalized, stride, ai->pointer);
@@ -201,9 +203,19 @@ void config_attr_info(GLAttrInfo *ai, unsigned count, int vidx, unsigned stride)
 				stride, OFF2PTR(ai->pointer));
 			CHECK();
 		}
-		if (ai->divisor)
+		if (ai->divisor) {
 			glVertexAttribDivisor(ai->index, ai->divisor);
+			CHECK();
+		}
 		glEnableVertexAttribArray(ai->index);
+	}
+}
+
+void bind_attr_info(GLAttrInfo *ai, AttribInfo *in, unsigned count, unsigned pgm) {
+	for (int n = 0; n < count; n++, ai++, in++) {
+		ai->index = glGetAttribLocation(pgm, in->name);
+		if (ai->index < 0)
+			printx("WARNING: cannot find attribute '%s' (late)\n", in->name);
 	}
 }
 
@@ -218,7 +230,7 @@ int setup_attr_info(GLAttrInfo **out, AttribInfo *in, unsigned count, unsigned p
 		ai[n].vidx = in->slot;	
 		ai[n].index = glGetAttribLocation(pgm, in->name);
 		if (ai[n].index < 0)
-			return error("cannot find attribute '%s'", in->name);
+			printx("WARNING: cannot find attribute '%s' (early)\n", in->name);
 		ai[n].pointer = in->offset;
 		ai[n].divisor = in->divisor;
 		switch (in->format) {
@@ -360,6 +372,7 @@ int App::compileShader(VertexShader *vs, const char *fn,
 		glDeleteShader(id);
 		return error("vertex shader '%s' bind error", fn);
 	}
+	vs->info = layout;
 	vs->count = lcount;
 	vs->vs = id;
 	printx("VertexShader %d compiled\n", id);
@@ -421,6 +434,7 @@ int App::initConfig(InputConfiguration *ic, VertexShader *vs, PixelShader *ps) {
 		glDeleteProgram(pgm);
 		return error("program link error");
 	}
+	bind_attr_info(vs->ai, vs->info, vs->count, pgm);
 	glGenVertexArrays(1, &vao);
 	CHECK();
 	glBindVertexArray(ic->vao);
