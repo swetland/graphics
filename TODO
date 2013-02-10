@@ -1,0 +1,23 @@
+
+- graphics
+  - break InputConfiguration into independent Layout/Buffer/Texture/etc state mgmt
+  - frame timing / fps
+  - smarter (any) shader program caching on OpenGL
+
+- input
+  - better keyboard input abstraction (make work on non-win32)
+
+- compatibility
+  - test on OpenGL ES 3.0
+  - test with AMD GPUs
+  - make buildable on OSX
+
+- content pipeline
+  - commandline args to override asset path
+  - asset compiler
+  - asset compiler: texture compression
+  - asset compiler: hlsl compilation
+  - asset compiler: object/mesh import and conversion
+  - asset loading from packed asset file
+  - asset loading path search (override path, default path, default packed asset file, etc)
+
