@@ -79,9 +79,9 @@ int TextGrid::init(App *a, int w, int h) {
 		text_layout_desc, sizeof(text_layout_desc)/sizeof(text_layout_desc[0])))
 		return -1;
 #else
-	if (a->loadShader(&ps, "../common/TextPS."SL))
+	if (a->loadShader(&ps, "TextPS."SL))
 		return -1;
-	if (a->loadShader(&vs, "../common/TextVS."SL,
+	if (a->loadShader(&vs, "TextVS."SL,
 		text_layout_desc, sizeof(text_layout_desc)/sizeof(text_layout_desc[0])))
 		return -1;
 #endif

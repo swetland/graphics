@@ -21,15 +21,21 @@
 
 #include "util.h"
 
+extern const char *load_file_base_path;
+
 void *_load_png(const char *fn, unsigned *_width, unsigned *_height, int ch, int inverty) {
 	png_structp png;
 	png_infop info;
 	png_uint_32 w, h;
 	int depth, ctype, itype, i;
 	png_byte *data = 0;
+	char tmp[1024];
 	FILE *fp;
 
-	if ((fp = fopen(fn, "rb")) == NULL)
+	snprintf(tmp, 1024, "%s%s", load_file_base_path, fn);
+	tmp[1023] = 0;
+
+	if ((fp = fopen(tmp, "rb")) == NULL)
 		goto exit;
 
 	if (!(png = png_create_read_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0)))
@@ -107,7 +113,7 @@ close_and_exit:
 	fclose(fp);
 exit:
 	if (!data)
-		fprintf(stderr,"failed to load '%s'\n", fn);
+		error("Failed to load '%s'", tmp);
 	return data;
 }
 

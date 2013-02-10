@@ -221,12 +221,8 @@ private:
 	int active;
 };
 
-int compileShader(const char *fn, const char *profile, ID3D10Blob **shader);
+//int compileShader(const char *fn, const char *profile, ID3D10Blob **shader);
 
 App *createApp(void);
-
-void printx(const char *fmt, ...);
-void printmtx(float *m, const char *name);
-int error(const char *fmt, ...);
 
 #endif

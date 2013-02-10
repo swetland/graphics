@@ -41,5 +41,14 @@ float snoise(float x, float y);
 float snoise(float x, float y, float z);
 float snoise(float x, float y, float z, float w);
 
+#ifdef _WIN32
+#define snprintf _snprintf
+#endif
+
+void printx(const char *fmt, ...);
+void printmtx(float *m, const char *name);
+int error(const char *fmt, ...);
+void die(const char *fmt, ...);
+
 #endif
 

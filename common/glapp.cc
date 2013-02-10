@@ -48,12 +48,6 @@ void __check_gl_error(const char *fn, int line) {
 #define CHECK()  __check_gl_error(__func__, __LINE__)
 #endif
 
-static void die(const char *fmt, ...) {
-	printx("ERROR: %s\n", fmt);
-	exit(-1);
-}
-
-
 #ifdef _WIN32
 static int SDL_GL_ExtensionSupported(const char *name) {
 	if (strstr((char*)glGetString(GL_EXTENSIONS), name))
@@ -176,49 +170,17 @@ App::App() : width(800), height(600), _vsync(1) {
 App::~App() {
 }
 
+void init_io(void);
+
 int main(int argc, char **argv) {
+	init_io();
 	App *app = createApp();
 	app->start();
 	app->release();
 	return 0;
 }
 
-
 // ----
-
-static inline void ignore(int x) {}
-
-void printx(const char *fmt, ...) {
-	char buf[128];
-	va_list ap;
-	va_start(ap, fmt);
-	vsnprintf(buf, sizeof(buf), fmt, ap);
-	buf[127] = 0;
-	va_end(ap);
-#ifdef _WIN32
-	OutputDebugString(buf);
-#else
-	fwrite(buf, strlen(buf), 1, stderr);
-#endif
-}
-
-void printmtx(float *m, const char *name) {
-	printx("| %8.4f %8.4f %8.4f %8.4f | \"%s\"\n", m[0], m[1], m[2], m[3], name);
-	printx("| %8.4f %8.4f %8.4f %8.4f |\n", m[4], m[5], m[6], m[7]);
-	printx("| %8.4f %8.4f %8.4f %8.4f |\n", m[8], m[9], m[10], m[11]);
-	printx("| %8.4f %8.4f %8.4f %8.4f |\n", m[12], m[13], m[14], m[15]);
-}
-
-int error(const char *fmt, ...) {
-	char buf[128];
-	va_list ap;
-	va_start(ap, fmt);
-	vsnprintf(buf, sizeof(buf), fmt, ap);
-	va_end(ap);
-	buf[127] = 0;
-	printx("ERROR: %s\n", buf);
-	return -1;
-}
 
 #define OFF2PTR(off)  (((char*) NULL) + off)
 

@@ -46,12 +46,18 @@ struct obj {
 	vector<i3> triangles;
 };
 
+extern const char *load_file_base_path;
+
 struct obj *load_obj(const char *fn) {
+	char tmp[1024];
 	char buf[128];
 	FILE *fp;
 	struct obj *o = 0;
 
-	if (!(fp = fopen(fn, "r")))
+	snprintf(tmp, 1024, "%s%s", load_file_base_path, fn);
+	tmp[1023] = 0;
+	printx("Loading Model '%s'...\n", tmp);
+	if (!(fp = fopen(tmp, "r")))
 		goto exit;
 
 	o = new(obj);
@@ -171,8 +177,10 @@ struct model *load_wavefront_obj(const char *fn) {
 	struct obj *o;
 	struct model *m;
 	o = load_obj(fn);
-	if (!o)
+	if (!o) {
+		error("Failed to load Model '%s'", fn);
 		return 0;
+	}
 	m = obj_to_model(o);
 	delete o;
 	return m;

@@ -19,12 +19,19 @@
 
 #include "util.h"
 
+const char *load_file_base_path = "";
+
 void *load_file(const char *fn, unsigned *_sz) {
+	char tmp[1024];
 	void *data = 0;
 	long sz;
 	FILE *fp;
 
-	if(!(fp = fopen(fn, "rb")))
+	snprintf(tmp, 1024, "%s%s", load_file_base_path, fn);
+	tmp[1023] = 0;
+
+	printx("Loading '%s'...\n", tmp);
+	if(!(fp = fopen(tmp, "rb")))
 		goto exit;
 
 	if (fseek(fp, 0, SEEK_END))
@@ -52,6 +59,6 @@ close_and_exit:
 	fclose(fp);
 exit:
 	if (!data)
-		fprintf(stderr, "failed to load '%s'\n", fn);
+		error("Failed to load '%s'", tmp);
 	return data;
 }

@@ -98,7 +98,10 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM l
 	return 0;
 }
 
+void init_io(void);
+
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow) {
+	init_io();
 	app = createApp();
 	if (app->start(hInstance, nCmdShow))
 		return 0;
@@ -675,40 +678,3 @@ int App::initBuffer(UniformBuffer *ub, void *data, int sz) {
 	return _create_buffer(device, D3D10_BIND_CONSTANT_BUFFER, data, sz, &ub->buf);
 }
 
-// ----
-
-void printx(const char *fmt, ...) {
-#if DEBUG || _DEBUG
-	char buf[128];
-	va_list ap;
-	va_start(ap, fmt);
-	vsnprintf(buf, sizeof(buf), fmt, ap);
-	buf[127] = 0;
-	va_end(ap);
-	OutputDebugString(buf);
-#endif
-}
-
-void printmtx(float *m, const char *name) {
-#if DEBUG || _DEBUG
-	printx("| %8.4f %8.4f %8.4f %8.4f | \"%s\"\n", m[0], m[1], m[2], m[3], name);
-	printx("| %8.4f %8.4f %8.4f %8.4f |\n", m[4], m[5], m[6], m[7]);
-	printx("| %8.4f %8.4f %8.4f %8.4f |\n", m[8], m[9], m[10], m[11]);
-	printx("| %8.4f %8.4f %8.4f %8.4f |\n", m[12], m[13], m[14], m[15]);
-#endif
-}
-
-int error(const char *fmt, ...) {
-	char buf[128];
-	va_list ap;
-	va_start(ap, fmt);
-	vsnprintf(buf, sizeof(buf), fmt, ap);
-	va_end(ap);
-	buf[127] = 0;
-#if _DEBUG
-	printx("ERROR: %s\n", buf);
-#else
-	MessageBox(NULL, buf, "Error", MB_OK);
-#endif
-	return -1;
-}
