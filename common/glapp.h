@@ -16,11 +16,19 @@
 #ifndef _GL_APP_H_
 #define _GL_APP_H_
 
+#ifdef _WIN32
+#define NO_SDL_GLEXT 1
+#include <SDL.h>
+#include <SDL_opengl.h>
+#include "opengl.h"
+#else
 #define GL_GLEXT_PROTOTYPES 1
 #define NO_SDL_GLEXT 1
 #include <SDL.h>
 #include <SDL_opengl.h>
-#include <GL/glext.h>
+#include "glcorearb.h"
+#endif
+
 #include <math.h>
 
 #define SL "glsl"
@@ -173,7 +181,7 @@ public:
 	void drawIndexedInstanced(unsigned numindices, unsigned numinstances);
 	void drawInstanced(unsigned numvertices, unsigned numinstances);
 	void drawIndexed(unsigned numindices);
-
+	void setBlend(int enable);
 protected:
 	int width;
 	int height;

@@ -15,7 +15,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
+
+#ifdef _WIN32
+#define GLUE_DEFINE_EXTENSIONS 1
+#endif
 
 #include "glapp.h"
 #include "util.h"
@@ -46,9 +49,35 @@ void __check_gl_error(const char *fn, int line) {
 #endif
 
 static void die(const char *fmt, ...) {
-	fprintf(stderr,"ERROR: %s\n", fmt);
+	printx("ERROR: %s\n", fmt);
 	exit(-1);
 }
+
+
+#ifdef _WIN32
+static int SDL_GL_ExtensionSupported(const char *name) {
+	if (strstr((char*)glGetString(GL_EXTENSIONS), name))
+		return 1;
+	else
+		return 0;
+}
+
+static void gl_map_functions(void) {
+	int n;
+	if (!SDL_GL_ExtensionSupported("GL_ARB_shader_objects") ||
+		!SDL_GL_ExtensionSupported("GL_ARB_shading_language_100") ||
+		!SDL_GL_ExtensionSupported("GL_ARB_vertex_shader") ||
+		!SDL_GL_ExtensionSupported("GL_ARB_fragment_shader"))
+		die("missing glsl extensions");
+	for (n = 0; n < sizeof(fntb)/sizeof(fntb[0]); n++) {
+		*fntb[n].func = SDL_GL_GetProcAddress(fntb[n].name);
+		if (!(*fntb[n].func))
+			die("cannot find func '%s'", fntb[n].name);
+	}
+}
+#else
+void gl_map_functions(void) {}
+#endif
 
 static void quit(void) {
 	SDL_Quit();
@@ -117,6 +146,8 @@ int App::start(void) {
 		SDL_HWSURFACE | SDL_GL_DOUBLEBUFFER | SDL_OPENGL) == NULL) 
 		die("sdl cannot set mode");
 
+	gl_map_functions();
+
 	if (init())
 		return -1;
 
@@ -155,7 +186,7 @@ int main(int argc, char **argv) {
 
 // ----
 
-static inline void IGNORE(int x) {}
+static inline void ignore(int x) {}
 
 void printx(const char *fmt, ...) {
 	char buf[128];
@@ -164,7 +195,11 @@ void printx(const char *fmt, ...) {
 	vsnprintf(buf, sizeof(buf), fmt, ap);
 	buf[127] = 0;
 	va_end(ap);
-	IGNORE(write(2, buf, strlen(buf)));
+#ifdef _WIN32
+	OutputDebugString(buf);
+#else
+	fwrite(buf, strlen(buf), 1, stderr);
+#endif
 }
 
 void printmtx(float *m, const char *name) {
@@ -566,4 +601,11 @@ void App::drawIndexed(unsigned numindices) {
 	_prepare(ic);
 	glDrawElements(GL_TRIANGLES, numindices, GL_UNSIGNED_SHORT, NULL);
 	CHECK();
+}
+
+void App::setBlend(int enable) {
+	if (enable)
+		glEnable(GL_BLEND);
+	else
+		glDisable(GL_BLEND);
 }

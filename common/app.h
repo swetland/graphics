@@ -1,5 +1,6 @@
-#ifdef _WIN32
-#include "dxapp.h"
-#else
+
+#if defined(USE_OPENGL) || !defined(_WIN32)
 #include "glapp.h"
+#else
+#include "dxapp.h"
 #endif
