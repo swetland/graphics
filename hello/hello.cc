@@ -114,9 +114,9 @@ void TestApp::build(void) {
 }
 
 int TestApp::init(void) {
-	if (loadShader(&ps, "SimplePS."SL ))
+	if (loadShader(&ps, "SimplePS." SL ))
 		return -1;
-	if (loadShader(&vs, "SimpleVS."SL, obj_layout, sizeof(obj_layout) / sizeof(obj_layout[0])))
+	if (loadShader(&vs, "SimpleVS." SL, obj_layout, sizeof(obj_layout) / sizeof(obj_layout[0])))
 		return -1;
 
 	if (!(m = load_wavefront_obj("unitcubeoid.obj")))
