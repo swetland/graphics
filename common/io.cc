@@ -21,7 +21,7 @@
 
 extern const char *load_file_base_path;
 
-static char base_path[1024];
+static char base_path[1024 + 8];
 
 #ifdef _WIN32
 #include <windows.h>
@@ -37,7 +37,19 @@ void init_io(void) {
 	}
 }
 #else
+#include <unistd.h>
 void init_io(void) {
+	char *x;
+	int r;
+	r = readlink("/proc/self/exe", base_path, 1024);
+	if (r < 0)
+		return;
+	x = strrchr(buf,'/');
+	if (x) {
+		x[1] = 0;
+		strcat(base_path,"assets/");
+		load_file_base_path = base_path;
+	}
 }
 #endif
 
