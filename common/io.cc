@@ -14,6 +14,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
 
@@ -44,7 +45,7 @@ void init_io(void) {
 	r = readlink("/proc/self/exe", base_path, 1024);
 	if (r < 0)
 		return;
-	x = strrchr(buf,'/');
+	x = strrchr(base_path, '/');
 	if (x) {
 		x[1] = 0;
 		strcat(base_path,"assets/");
