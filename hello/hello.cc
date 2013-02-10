@@ -172,7 +172,7 @@ void TestApp::render(void) {
 		if (zoom > 100.0) zoom = 100.0;
 	}
 
-#if _WIN32
+#if defined(_WIN32) && !defined(USE_OPENGL)
 	if (keystate[DIK_A]) { nx -= 0.01; update = 1; }
 	if (keystate[DIK_D]) { nx += 0.01; update = 1; }
 	if (keystate[DIK_W]) { ny -= 0.01; update = 1; }
