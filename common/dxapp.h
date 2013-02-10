@@ -183,7 +183,9 @@ public:
 	void drawInstanced(unsigned numvertices, unsigned numinstances) {
 		device->DrawInstanced(numvertices, numinstances, 0, 0);
 	}
-
+	void drawIndexed(unsigned numindices) {
+		device->DrawIndexed(numindices, 0, 0);
+	};
 	void setBlend(int enabled);
 protected:
 	int width;
