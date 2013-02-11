@@ -48,7 +48,13 @@ private:
 
 	mat4 proj;
 	struct model *m;
+
+	int ps_mtime;
+	int vs_mtime;
 };
+
+static const char *psfn = "TestPS." SL;
+static const char *vsfn = "TestVS." SL;
 
 TestApp::TestApp() : App(), r(0.0) {
 }
@@ -57,10 +63,13 @@ void TestApp::release(void) {
 }
 
 int TestApp::init(void) {
-	if (loadShader(&ps, "TestPS."SL))
+	if (loadShader(&ps, psfn))
 		return -1;
-	if (loadShader(&vs, "TestVS."SL, obj_layout, sizeof(obj_layout) / sizeof(obj_layout[0])))
+	if (loadShader(&vs, vsfn, obj_layout, sizeof(obj_layout) / sizeof(obj_layout[0])))
 		return -1;
+
+	ps_mtime = file_get_mtime(psfn);
+	vs_mtime = file_get_mtime(vsfn);
 
 	if (!(m = load_wavefront_obj("unitcubeoid.obj")))
 		return error("cannot load model");
@@ -88,6 +97,18 @@ int TestApp::init(void) {
 
 void TestApp::render(void) {
 	unsigned stride, offset;
+	int t;
+
+	t = file_get_mtime(psfn);
+	if (t != ps_mtime) {
+		loadShader(&ps, psfn);
+		ps_mtime = t;
+	}
+	t = file_get_mtime(vsfn);
+	if (t != vs_mtime) {
+		loadShader(&vs, vsfn, obj_layout, sizeof(obj_layout) / sizeof(obj_layout[0]));
+		vs_mtime = t;
+	}
 
 	useConfig(&cfg);
 	struct {

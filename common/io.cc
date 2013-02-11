@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <sys/stat.h>
 
 #include "util.h"
 
@@ -53,6 +54,15 @@ void init_io(void) {
 	}
 }
 #endif
+
+int file_get_mtime(const char *fn) {
+	struct stat s;
+	char buf[1024];
+	snprintf(buf, 1024, "%s%s", load_file_base_path, fn);
+	if (stat(buf, &s))
+		return -1;
+	return s.st_mtime;
+}
 
 void die(const char *fmt, ...) {
 	printx("ERROR: %s\n", fmt);
