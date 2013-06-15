@@ -89,17 +89,17 @@ XCOPY "$(ProjectDir)assets" "$(TargetDir)assets" /E /I /F /Y</Command>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
-      <AdditionalIncludeDirectories>..\..\SDL-1.2.15\include;..\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\SDL-2.0.0\include;..\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>USE_OPENGL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>common.lib;SDL.lib;SDLmain.lib;libpng-1.2.50.lib;zlib-1.2.7.lib;OpenGL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>common.lib;SDL2.lib;SDL2main.lib;libpng-1.2.50.lib;zlib-1.2.7.lib;OpenGL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
-      <AdditionalLibraryDirectories>..\..\SDL-1.2.15\lib\x86;..\OpenGL-Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\SDL-2.0.0\lib\x86;..\OpenGL-Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>XCOPY "$(ProjectDir)..\..\SDL-1.2.15\lib\x86\SDL.dll" "$(TargetDir)" /E /I /F /Y
+      <Command>XCOPY "$(ProjectDir)..\..\SDL-2.0.0\lib\x86\SDL2.dll" "$(TargetDir)" /E /I /F /Y
 XCOPY "$(ProjectDir)..\common\assets" "$(TargetDir)assets" /E /I /F /Y
 XCOPY "$(ProjectDir)assets" "$(TargetDir)assets" /E /I /F /Y</Command>
     </PostBuildEvent>

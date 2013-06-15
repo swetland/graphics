@@ -49,13 +49,6 @@ void __check_gl_error(const char *fn, int line) {
 #endif
 
 #ifdef _WIN32
-static int SDL_GL_ExtensionSupported(const char *name) {
-	if (strstr((char*)glGetString(GL_EXTENSIONS), name))
-		return 1;
-	else
-		return 0;
-}
-
 static void gl_map_functions(void) {
 	int n;
 	if (!SDL_GL_ExtensionSupported("GL_ARB_shader_objects") ||
