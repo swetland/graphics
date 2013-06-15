@@ -64,23 +64,33 @@ int file_get_mtime(const char *fn) {
 	return s.st_mtime;
 }
 
-void die(const char *fmt, ...) {
-	printx("ERROR: %s\n", fmt);
-	exit(-1);
-}
 
-void printx(const char *fmt, ...) {
+void vprintx(const char *fmt, va_list ap) {
 	char buf[128];
-	va_list ap;
-	va_start(ap, fmt);
 	vsnprintf(buf, sizeof(buf), fmt, ap);
 	buf[127] = 0;
-	va_end(ap);
 #if defined(_WIN32) && defined(_DEBUG)
 	OutputDebugString(buf);
 #else
 	fwrite(buf, strlen(buf), 1, stderr);
 #endif
+}
+
+void printx(const char *fmt, ...) {
+	va_list ap;
+	va_start(ap, fmt);
+	vprintx(fmt, ap);
+	va_end(ap);
+}
+
+void die(const char *fmt, ...) {
+	va_list ap;
+	printx("ERROR: ");
+	va_start(ap, fmt);
+	vprintx(fmt, ap);
+	va_end(ap);
+	printx("\n");
+	exit(-1);
 }
 
 void printmtx(float *m, const char *name) {
