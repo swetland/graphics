@@ -1,10 +1,10 @@
 
-SDLCFG := sdl-config
+SDLCFG := /work/sdl2/bin/sdl2-config
 
 SDLFLAGS := $(shell $(SDLCFG) --cflags)
-SDLLIBS := $(shell $(SDLCFG) --libs)
+SDLLIBS := $(shell $(SDLCFG) --static-libs)
 
-CFLAGS := $(SDLFLAGS) -DWITH_SDL2=0 -Wall -g -O2
+CFLAGS := $(SDLFLAGS) -Wall -g -O2
 CFLAGS += -ffunction-sections -fdata-sections
 CFLAGS += -std=c++0x
 CFLAGS += -I../common
@@ -15,7 +15,7 @@ LFLAGS += -Wl,-gc-sections
 CXXFLAGS := $(CFLAGS)
 
 GLLIB := /usr/lib/nvidia-experimental-310/libGL.so.310.14
-#LIBS := $(SDLLIBS) -lGL -lm -lpng
+#GLLIB := -lGL
 LIBS := $(SDLLIBS) $(GLLIB) -lm -lpng
 
 LIBOBJS := ../common/loadfile.o
@@ -26,10 +26,11 @@ LIBOBJS += ../common/simplexnoise.o
 LIBOBJS += ../common/matrix.o
 LIBOBJS += ../common/textgrid.o
 LIBOBJS += ../common/glapp.o
+LIBOBJS += ../common/io.o
 
 OBJS := hello.o
 
-all: hello test
+all: hello
 
 hello: $(OBJS) $(LIBOBJS)
 	$(CXX) $(LFLAGS) -o hello $(OBJS) $(LIBOBJS) $(LIBS)

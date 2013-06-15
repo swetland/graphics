@@ -133,12 +133,29 @@ int App::start(void) {
 	SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32);
 
 	/* enable vsync */
-	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, _vsync);
+	//SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, _vsync);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, _vsync);
 
-	if (SDL_SetVideoMode(width, height, 32,
-		SDL_HWSURFACE | SDL_GL_DOUBLEBUFFER | SDL_OPENGL) == NULL) 
-		die("sdl cannot set mode");
+	win = SDL_CreateWindow("Application",
+		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+		width, height, SDL_WINDOW_OPENGL /* | SDL_WINDOW_RESIZABLE */);
+
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+
+	glcontext = SDL_GL_CreateContext(win);
+
+#if FALLBACK_TO_GL32
+	if (!glcontext) {
+		fprintf(stderr, "oops?\n");
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+		glcontext = SDL_GL_CreateContext(win);
+		/* query needed extensions, etc */
+	}
+#endif
+
+	SDL_GL_SetSwapInterval(_vsync);
 
 	gl_map_functions();
 
@@ -156,7 +173,7 @@ int App::start(void) {
 		render();
 
 		if (_vsync) {
-			SDL_GL_SwapBuffers();
+			SDL_GL_SwapWindow(win);
 		} else {
 			glFlush();
 		}

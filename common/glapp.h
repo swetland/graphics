@@ -199,6 +199,8 @@ protected:
 
 private:
 	int _vsync;
+	SDL_Window *win;
+	SDL_GLContext glcontext;
 };
 
 App *createApp(void);
