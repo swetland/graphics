@@ -21,9 +21,35 @@
 
 #include "util.h"
 
-extern const char *load_file_base_path;
+static char base_path[1024 + 8] = "";
 
-static char base_path[1024 + 8];
+static const char *search[] = {
+#ifdef _WIN32
+	"assets\\",
+#else
+	"assets/",
+	"../common/assets/",
+#endif
+	NULL,
+};
+
+FILE *fopen_asset(const char *fn, const char *kind) {
+	char path[2048 + 64];
+	FILE *fp;
+	int i;
+	if (strlen(fn) > 1024)
+		return NULL;
+	for (i = 0; search[i]; i++) {
+		sprintf(path, "%s%s%s", base_path, search[i], fn);
+		fp = fopen(path, "rb");
+		if (fp != NULL) {
+			printx("Loading %s from '%s'...\n", kind, path);
+			return fp;
+		}
+	}
+	printx("Cannot find %s '%s'.\n", kind, fn);
+	return NULL;
+}
 
 #ifdef _WIN32
 #include <windows.h>
@@ -32,11 +58,10 @@ void init_io(void) {
 	GetModuleFileName(NULL, base_path, 1024);
 	base_path[1023] = 0;
 	x = strrchr(base_path, '\\');
-	if (x) {
+	if (x)
 		x[1] = 0;
-		strcat(base_path,"assets\\");
-		load_file_base_path = base_path;
-	}
+	else
+		strcpy(base_path,".\\");
 }
 #else
 #include <unistd.h>
@@ -47,18 +72,17 @@ void init_io(void) {
 	if (r < 0)
 		return;
 	x = strrchr(base_path, '/');
-	if (x) {
+	if (x)
 		x[1] = 0;
-		strcat(base_path,"assets/");
-		load_file_base_path = base_path;
-	}
+	else
+		strcpy(base_path,"./");
 }
 #endif
 
 int file_get_mtime(const char *fn) {
 	struct stat s;
 	char buf[1024];
-	snprintf(buf, 1024, "%s%s", load_file_base_path, fn);
+	snprintf(buf, 1024, "%s%s", base_path, fn);
 	if (stat(buf, &s))
 		return -1;
 	return s.st_mtime;

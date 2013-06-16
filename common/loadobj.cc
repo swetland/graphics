@@ -46,18 +46,12 @@ struct obj {
 	vector<i3> triangles;
 };
 
-extern const char *load_file_base_path;
-
 struct obj *load_obj(const char *fn) {
-	char tmp[1024];
 	char buf[128];
 	FILE *fp;
 	struct obj *o = 0;
 
-	snprintf(tmp, 1024, "%s%s", load_file_base_path, fn);
-	tmp[1023] = 0;
-	printx("Loading Model '%s'...\n", tmp);
-	if (!(fp = fopen(tmp, "r")))
+	if (!(fp = fopen_asset(fn, "model")))
 		goto exit;
 
 	o = new(obj);

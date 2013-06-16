@@ -51,5 +51,6 @@ void printmtx(float *m, const char *name);
 int error(const char *fmt, ...);
 void die(const char *fmt, ...);
 
+FILE *fopen_asset(const char *fn, const char *kind);
 #endif
 
