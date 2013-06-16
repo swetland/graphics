@@ -53,8 +53,8 @@ private:
 	int vs_mtime;
 };
 
-static const char *psfn = "TestPS." SL;
-static const char *vsfn = "TestVS." SL;
+static const char *psfn = "TestPS.glsl";
+static const char *vsfn = "TestVS.glsl";
 
 TestApp::TestApp() : App(), r(0.0) {
 }

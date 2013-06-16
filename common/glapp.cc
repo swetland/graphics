@@ -20,7 +20,7 @@
 #define GLUE_DEFINE_EXTENSIONS 1
 #endif
 
-#include "glapp.h"
+#include "app.h"
 #include "util.h"
 
 #if 1

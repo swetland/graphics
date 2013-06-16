@@ -114,9 +114,9 @@ void TestApp::build(void) {
 }
 
 int TestApp::init(void) {
-	if (loadShader(&ps, "SimplePS." SL ))
+	if (loadShader(&ps, "SimplePS.glsl"))
 		return -1;
-	if (loadShader(&vs, "SimpleVS." SL, obj_layout, sizeof(obj_layout) / sizeof(obj_layout[0])))
+	if (loadShader(&vs, "SimpleVS.glsl", obj_layout, sizeof(obj_layout) / sizeof(obj_layout[0])))
 		return -1;
 
 	if (!(m = load_wavefront_obj("unitcubeoid.obj")))
@@ -178,8 +178,8 @@ void TestApp::render(void) {
 	if (keystate[DIK_W]) { ny -= 0.01; update = 1; }
 	if (keystate[DIK_S]) { ny += 0.01; update = 1; }
 	if (keystate[DIK_P]) {
-		loadShader(&ps, "SimplePS."SL);
-		loadShader(&vs, "SimpleVS."SL, obj_layout,
+		loadShader(&ps, "SimplePS.glsl");
+		loadShader(&vs, "SimpleVS.glsl", obj_layout,
 			sizeof(obj_layout) / sizeof(obj_layout[0]));
 	}
 oops:

@@ -70,21 +70,11 @@ int TextGrid::init(App *a, int w, int h) {
 		return -1;
 	if (a->initBuffer(&ubuf, NULL, sizeof(cb)))
 		return -1;
-#if BUILTIN
-	if (a->compileShader(&ps, "TextPS." SL,
-		(void*) codeTextPS, sizeof(codeTextPS), 1))
+	if (a->loadShader(&ps, "TextPS.glsl"))
 		return -1;
-	if (a->compileShader(&vs, "TextVS." SL,
-		(void*) codeTextVS, sizeof(codeTextVS), 1,
+	if (a->loadShader(&vs, "TextVS.glsl",
 		text_layout_desc, sizeof(text_layout_desc)/sizeof(text_layout_desc[0])))
 		return -1;
-#else
-	if (a->loadShader(&ps, "TextPS." SL))
-		return -1;
-	if (a->loadShader(&vs, "TextVS." SL,
-		text_layout_desc, sizeof(text_layout_desc)/sizeof(text_layout_desc[0])))
-		return -1;
-#endif
 
 	cb.proj.setOrtho(0, w, 0, h, -1, 1);	
 	cb.cw = width;
