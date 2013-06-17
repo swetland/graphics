@@ -333,7 +333,7 @@ int Program::load(const char *vsfn, const char *gsfn, const char *psfn) {
 		return -1;
 	if (ps.load(psfn))
 		return -1;
-	return link(&vs, &ps);
+	return link(&vs, &gs, &ps);
 }
 
 int Program::load(const char *vsfn, const char *psfn) {
