@@ -299,10 +299,16 @@ static void dump_link_error(unsigned id) {
 }
 
 int Program::link(VertexShader *vs, PixelShader *ps) {
+	return link(vs, NULL, ps);
+}
+
+int Program::link(VertexShader *vs, GeometryShader *gs, PixelShader *ps) {
 	unsigned n;
 	int r;
 	n = glCreateProgram();
 	glAttachShader(n, vs->id);
+	if (gs)
+		glAttachShader(n, gs->id);
 	glAttachShader(n, ps->id);
 	glLinkProgram(n);
 	glGetProgramiv(n, GL_LINK_STATUS, &r);
@@ -315,6 +321,19 @@ int Program::link(VertexShader *vs, PixelShader *ps) {
 		glDeleteProgram(id);
 	id = n;
 	return 0;
+}
+
+int Program::load(const char *vsfn, const char *gsfn, const char *psfn) {
+	VertexShader vs;
+	GeometryShader gs;
+	PixelShader ps;
+	if (vs.load(vsfn))
+		return -1;
+	if (gs.load(gsfn))
+		return -1;
+	if (ps.load(psfn))
+		return -1;
+	return link(&vs, &ps);
 }
 
 int Program::load(const char *vsfn, const char *psfn) {
@@ -349,12 +368,16 @@ static int _load_shader(unsigned *out, const char *fn, unsigned type) {
 	return 0;
 }
 
+int VertexShader::load(const char *fn) {
+	return _load_shader(&id, fn, GL_VERTEX_SHADER);
+}
+
 int PixelShader::load(const char *fn) {
 	return _load_shader(&id, fn, GL_FRAGMENT_SHADER);
 }
 
-int VertexShader::load(const char *fn) {
-	return _load_shader(&id, fn, GL_VERTEX_SHADER);
+int GeometryShader::load(const char *fn) {
+	return _load_shader(&id, fn, GL_GEOMETRY_SHADER);
 }
 
 int Texture2D::load(const char *fn, int genmips) {

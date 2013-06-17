@@ -58,6 +58,13 @@ struct VertexAttrDesc {
 	unsigned unused;
 };
 
+struct VertexShader {
+	unsigned id;
+	VertexShader() : id(0) {};
+	~VertexShader() { if (id) { glDeleteShader(id); } };
+	int load(const char *fn);
+};
+
 struct PixelShader {
 	unsigned id;
 	PixelShader() : id(0) {};
@@ -65,10 +72,10 @@ struct PixelShader {
 	int load(const char *fn);
 };
 
-struct VertexShader {
+struct GeometryShader {
 	unsigned id;
-	VertexShader() : id(0) {};
-	~VertexShader() { if (id) { glDeleteShader(id); } };
+	GeometryShader() : id(0) {};
+	~GeometryShader() { if (id) glDeleteShader(id); };
 	int load(const char *fn);
 };
 
@@ -78,7 +85,9 @@ struct Program {
 	~Program() { if (id) { glDeleteProgram(id); } };
 	void use(void) { glUseProgram(id); }
 	int link(VertexShader *vs, PixelShader *ps);
+	int link(VertexShader *vs, GeometryShader *gs, PixelShader *ps);
 	int load(const char *vsfn, const char *psfn);
+	int load(const char *vsfn, const char *gsfn, const char *psfn);
 };
 
 struct Texture2D {
