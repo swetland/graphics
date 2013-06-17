@@ -1,4 +1,5 @@
-#version 330
+#version 150
+#extension GL_ARB_explicit_attrib_location : enable
 
 layout(std140) uniform cb0 {
 	mat4 MVP;
@@ -6,13 +7,11 @@ layout(std140) uniform cb0 {
 	int ch;
 };
 
-
-in vec4 POSITION;
-in vec2 TEXCOORD;
-in uint CHARACTER;
+layout (location = 0) in vec4 POSITION;
+layout (location = 1) in vec2 TEXCOORD;
+layout (location = 2) in uint CHARACTER;
 
 out vec2 vTEXCOORD;
-
 
 void main() {
 	vec4 pos = POSITION;

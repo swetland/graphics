@@ -81,8 +81,8 @@ void init_io(void) {
 
 int file_get_mtime(const char *fn) {
 	struct stat s;
-	char buf[1024];
-	snprintf(buf, 1024, "%s%s", base_path, fn);
+	char buf[2048 + 64];
+	snprintf(buf, 1024, "%s%s%s", base_path, search[0], fn);
 	if (stat(buf, &s))
 		return -1;
 	return s.st_mtime;

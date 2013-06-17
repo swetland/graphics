@@ -21,10 +21,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static AttribInfo obj_layout[] = {
-	{ "POSITION", 0, FMT_32x3_FLOAT, 0,  0, VERTEX_DATA, 0 },
-	{ "NORMAL",   0, FMT_32x3_FLOAT, 0, 12, VERTEX_DATA, 0 },
-	{ "TEXCOORD", 0, FMT_32x2_FLOAT, 0, 24, VERTEX_DATA, 0 },
+// idx, src, dst, count, offset, stride, divisor
+static VertexAttrDesc layout[] = {
+	{ 0, SRC_FLOAT, DST_FLOAT, 3,  0, 32, 0 },
+	{ 1, SRC_FLOAT, DST_FLOAT, 3, 12, 32, 0 },
+	{ 2, SRC_FLOAT, DST_FLOAT, 2, 24, 32, 0 },
 };
 
 class TestApp : public App {
@@ -40,11 +41,11 @@ private:
 
 	PixelShader ps;
 	VertexShader vs;
+	Program pgm;
 	IndexBuffer ibuf;
 	VertexBuffer vbuf;
 	UniformBuffer ubuf;
-	VertexBuffer lbuf;
-	InputConfiguration cfg;
+	VertexAttributes attr;
 
 	mat4 proj;
 	struct model *m;
@@ -63,11 +64,9 @@ void TestApp::release(void) {
 }
 
 int TestApp::init(void) {
-	if (loadShader(&ps, psfn))
-		return -1;
-	if (loadShader(&vs, vsfn, obj_layout, sizeof(obj_layout) / sizeof(obj_layout[0])))
-		return -1;
-
+	VertexBuffer *data[] = {
+		&vbuf, &vbuf, &vbuf,
+	};
 	ps_mtime = file_get_mtime(psfn);
 	vs_mtime = file_get_mtime(vsfn);
 
@@ -75,22 +74,20 @@ int TestApp::init(void) {
 		return error("cannot load model");
 	printx("Object Loaded. %d vertices, %d indices.\n", m->vcount, m->icount);
 
-	if (initBuffer(&vbuf, m->vdata, 32 * m->vcount))
-		return -1;
-	if (initBuffer(&ibuf, m->idx, 2 * m->icount))
-		return -1;
-	if (initBuffer(&ubuf, NULL, 32 * 4))
-		return -1;
-
-	if (initConfig(&cfg, &vs, &ps))
-		return -1;
 	proj.setPerspective(D2R(90.0), width / (float) height, 0.1f, 250.0f);
 
-	useConfig(&cfg);
-	useBuffer(&ubuf, 0);
-	useBuffer(&vbuf, 0, 32, 0);
-	useBuffer(&lbuf, 1, 4, 0);
-	useBuffer(&ibuf);
+	ps.load(psfn);
+	vs.load(vsfn);
+	pgm.link(&vs, &ps);
+
+	vbuf.load(m->vdata, 32 * m->vcount);
+	ibuf.load(m->idx, 2 * m->icount);
+	ubuf.load(NULL, 32 * 4);
+
+	attr.init(layout, data, sizeof(layout)/sizeof(layout[0]));
+
+	/* this will persist because it is part of the VAO state */
+	ibuf.use();
 
 	return 0;
 }
@@ -101,16 +98,19 @@ void TestApp::render(void) {
 
 	t = file_get_mtime(psfn);
 	if (t != ps_mtime) {
-		loadShader(&ps, psfn);
+		printx("ps change!\n");
+		ps.load(psfn);
 		ps_mtime = t;
+		pgm.link(&vs, &ps);
 	}
 	t = file_get_mtime(vsfn);
 	if (t != vs_mtime) {
-		loadShader(&vs, vsfn, obj_layout, sizeof(obj_layout) / sizeof(obj_layout[0]));
+		printx("vs change!\n");
+		vs.load(vsfn);
 		vs_mtime = t;
+		pgm.link(&vs, &ps);
 	}
 
-	useConfig(&cfg);
 	struct {
 		mat4 mvp;
 		mat4 mv;
@@ -126,8 +126,12 @@ void TestApp::render(void) {
 	cb0.mvp = world * view * proj;
 	cb0.mv = world * view;
 
-	updateBuffer(&ubuf, &cb0);
-	drawIndexed(m->icount);
+	ubuf.load(&cb0, 32 * 4);
+
+	pgm.use();
+	ubuf.use(0);
+	attr.use();
+	glDrawElements(GL_TRIANGLES, m->icount, GL_UNSIGNED_SHORT, NULL);
 }
 
 App *createApp(void) {

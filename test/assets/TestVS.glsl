@@ -1,4 +1,5 @@
-#version 330
+#version 150
+#extension GL_ARB_explicit_attrib_location : enable
 
 //uniform mat4 MVP0;
 
@@ -7,9 +8,9 @@ layout(std140) uniform cb0 {
 	mat4 MV;
 };
 
-in vec4 POSITION;
-in vec4 NORMAL;
-in vec2 TEXCOORD;
+layout (location = 0) in vec4 POSITION;
+layout (location = 1) in vec4 NORMAL;
+layout (location = 2) in vec2 TEXCOORD;
 
 out vec2 vTEXCOORD;
 out float vDIFFUSE;

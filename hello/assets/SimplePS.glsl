@@ -1,3 +1,4 @@
+#version 150
 
 varying vec2 vTEXCOORD;
 varying float vDIFFUSE;

@@ -21,11 +21,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static AttribInfo obj_layout[] = {
-	{ "POSITION", 0, FMT_32x3_FLOAT, 0,  0, VERTEX_DATA, 0 },
-	{ "NORMAL",   0, FMT_32x3_FLOAT, 0, 12, VERTEX_DATA, 0 },
-	{ "TEXCOORD", 0, FMT_32x2_FLOAT, 0, 24, VERTEX_DATA, 0 },
-	{ "LOCATION", 0, FMT_8x4_SNORM,  1,  0, INSTANCE_DATA, 1 },
+// idx, src, dst, count, offset, stride, divisor
+static VertexAttrDesc layout[] = {
+        { 0, SRC_FLOAT, DST_FLOAT,      3,  0, 32, 0 },
+        { 1, SRC_FLOAT, DST_FLOAT,      3, 12, 32, 0 },
+        { 2, SRC_FLOAT, DST_FLOAT,      2, 24, 32, 0 },
+	{ 3, SRC_INT8,  DST_NORMALIZED, 4,  0,  4, 1 },
 };
 
 static float locationx[] = {
@@ -57,11 +58,12 @@ private:
 
 	PixelShader ps;
 	VertexShader vs;
+	Program pgm;
 	IndexBuffer ibuf;
 	VertexBuffer vbuf;
 	UniformBuffer ubuf;
 	VertexBuffer lbuf;
-	InputConfiguration cfg;
+	VertexAttributes attr;
 
 	TextGrid text;
 	float nx,ny;
@@ -110,38 +112,35 @@ void TestApp::build(void) {
 	lcount = n / 4;
 	printx("Wrote %d locations\n", lcount);
 
-	initBuffer(&lbuf, location, lcount * 4);
+	lbuf.load(location, lcount * 4);
 }
 
 int TestApp::init(void) {
-	if (loadShader(&ps, "SimplePS.glsl"))
+	VertexBuffer *data[] = {
+		&vbuf, &vbuf, &vbuf, &lbuf,
+	};
+	if (ps.load("SimplePS.glsl"))
 		return -1;
-	if (loadShader(&vs, "SimpleVS.glsl", obj_layout, sizeof(obj_layout) / sizeof(obj_layout[0])))
+	if (vs.load("SimpleVS.glsl"))
+		return -1;
+	if (pgm.link(&vs, &ps))
 		return -1;
 
 	if (!(m = load_wavefront_obj("unitcubeoid.obj")))
 		return error("cannot load model");
 	printx("Object Loaded. %d vertices, %d indices.\n", m->vcount, m->icount);
 
-	if (initBuffer(&vbuf, m->vdata, 32 * m->vcount))
-		return -1;
-	if (initBuffer(&ibuf, m->idx, 2 * m->icount))
-		return -1;
-	if (initBuffer(&ubuf, NULL, 32 * 4))
-		return -1;
+	vbuf.load(m->vdata, 32 * m->vcount);
+	ibuf.load(m->idx, 2 * m->icount);
+	ubuf.load(NULL, 32 * 4);
 
-	if (initConfig(&cfg, &vs, &ps))
-		return -1;
 	proj.setPerspective(D2R(90.0), width / (float) height, 0.1f, 250.0f);
 
 	build();
 	zoom = SZ;
 
-	useConfig(&cfg);
-	useBuffer(&ubuf, 0);
-	useBuffer(&vbuf, 0, 32, 0);
-	useBuffer(&lbuf, 1, 4, 0);
-	useBuffer(&ibuf);
+	attr.init(layout, data, sizeof(layout) / sizeof(layout[0]));
+	ibuf.use();
 	
 	if (text.init(this, 64, 64))
 		return -1;
@@ -187,8 +186,6 @@ oops:
 		build();
 #endif
 
-	useConfig(&cfg);
-
 	struct {
 		mat4 mvp;
 		mat4 mv;
@@ -201,8 +198,12 @@ oops:
 	world.identity().translate(0.5, 0.5, 0.5);
 	cb0.mvp = world * view * proj;
 	cb0.mv = world * view;
-	updateBuffer(&ubuf, &cb0);
-	drawIndexedInstanced(m->icount, lcount);
+
+	pgm.use();
+	ubuf.load(&cb0, sizeof(cb0));
+	ubuf.use(0);
+	attr.use();
+	glDrawElementsInstanced(GL_TRIANGLES, m->icount, GL_UNSIGNED_SHORT, NULL, lcount);
 
 	text.clear();
 	text.printf(0, 0, "rx: %8.4f", rx);

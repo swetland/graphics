@@ -33,8 +33,9 @@ private:
 	VertexBuffer cbuf;
 	PixelShader ps;
 	VertexShader vs;
+	Program pgm;
 	Texture2D texture;
-	InputConfiguration cfg;
+	VertexAttributes attr;
 
 	unsigned char *grid;
 };

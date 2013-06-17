@@ -190,135 +190,87 @@ int main(int argc, char **argv) {
 	return 0;
 }
 
-// ----
+static unsigned vattr_type(unsigned type) {
+	switch (type) {
+	case SRC_INT8:   return GL_BYTE;
+	case SRC_UINT8:  return GL_UNSIGNED_BYTE;
+	case SRC_INT16:  return GL_SHORT;
+	case SRC_UINT16: return GL_UNSIGNED_SHORT;
+	case SRC_INT32:  return GL_INT;
+	case SRC_UINT32: return GL_UNSIGNED_INT;
+	case SRC_FLOAT:  return GL_FLOAT;
+	default:         return GL_FLOAT;
+	}
+}
 
 #define OFF2PTR(off)  (((char*) NULL) + off)
 
-void config_attr_info(GLAttrInfo *ai, unsigned count, int vidx, unsigned stride) {
-	unsigned n;
-	for (n = 0; n < count; n++, ai++) {
-		if (ai->vidx != vidx) continue;
-		if (ai->index < 0)
-			continue;
-		if (ai->kind == KIND_ATTRIB_POINTER) {
-			printf("VTX ATR idx=%d sz=%d type=%d norm=%d stride=%d off=%d\n",
-				ai->index, ai->size, ai->type, ai->normalized, stride, ai->pointer);
-			glVertexAttribPointer(ai->index, ai->size, ai->type,
-				ai->normalized, stride, OFF2PTR(ai->pointer));
-			CHECK();
-		} else {
-			printf("VTX ATR idx=%d sz=%d type=%d stride=%d off=%d\n",
-				ai->index, ai->size, ai->type, stride, ai->pointer);
-			glVertexAttribIPointer(ai->index, ai->size, ai->type,
-				stride, OFF2PTR(ai->pointer));
+void VertexAttributes::init(VertexAttrDesc *desc, VertexBuffer **data, unsigned count) {
+	unsigned id = 0, n;
+	glGenVertexArrays(1, &vao);
+	CHECK();
+	glBindVertexArray(vao);
+	CHECK();
+	for (n = 0; n < count; n++) {
+		if (data && (data[n]->id != id)) {
+			id = data[n]->id;
+			glBindBuffer(GL_ARRAY_BUFFER, id);
 			CHECK();
 		}
-		if (ai->divisor) {
-			glVertexAttribDivisor(ai->index, ai->divisor);
+		switch (desc->dst_type) {
+		case DST_FLOAT:
+			glVertexAttribPointer(desc->index, desc->count,
+				vattr_type(desc->src_type), GL_FALSE, desc->stride,
+				OFF2PTR(desc->offset));
 			CHECK();
+			break;
+		case DST_NORMALIZED:
+			glVertexAttribPointer(desc->index, desc->count,
+				vattr_type(desc->src_type), GL_TRUE, desc->stride,
+				OFF2PTR(desc->offset));
+			CHECK();
+			break;
+		case DST_INTEGER:
+			glVertexAttribIPointer(desc->index, desc->count,
+				vattr_type(desc->src_type), desc->stride,
+				OFF2PTR(desc->offset));
+			CHECK();
+			break;
 		}
-		glEnableVertexAttribArray(ai->index);
+		glVertexAttribDivisor(desc->index, desc->divisor);
+		CHECK();
+		glEnableVertexAttribArray(desc->index);
+		CHECK();
+		desc++;
 	}
 }
 
-void bind_attr_info(GLAttrInfo *ai, AttribInfo *in, unsigned count, unsigned pgm) {
-	for (int n = 0; n < count; n++, ai++, in++) {
-		ai->index = glGetAttribLocation(pgm, in->name);
-		if (ai->index < 0)
-			printx("WARNING: cannot find attribute '%s' (late)\n", in->name);
-	}
+
+void VertexBuffer::load(void *data, unsigned size) {
+	if (id == 0)
+		glGenBuffers(1, &id);
+	glBindBuffer(GL_ARRAY_BUFFER, id);
+	glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
+	sz = size;
 }
 
-/* map attribute names to indices, and adapt layout parameters for GL */
-int setup_attr_info(GLAttrInfo **out, AttribInfo *in, unsigned count, unsigned pgm) {
-	GLAttrInfo *ai = (GLAttrInfo*) malloc(sizeof(GLAttrInfo) * count);
-	unsigned n;
-	if (!ai)
-		return error("Out of Memory");
-	memset(ai, 0, sizeof(GLAttrInfo) * count);
-	for (n = 0; n < count; n++, in++) {
-		ai[n].vidx = in->slot;	
-		ai[n].index = glGetAttribLocation(pgm, in->name);
-		if (ai[n].index < 0)
-			printx("WARNING: cannot find attribute '%s' (early)\n", in->name);
-		ai[n].pointer = in->offset;
-		ai[n].divisor = in->divisor;
-		switch (in->format) {
-		case FMT_32x4_FLOAT:
-			ai[n].kind = KIND_ATTRIB_POINTER;
-			ai[n].size = 4;
-			ai[n].type = GL_FLOAT;
-			ai[n].normalized = GL_FALSE;
-			break;
-		case FMT_32x3_FLOAT:
-			ai[n].kind = KIND_ATTRIB_POINTER;
-			ai[n].size = 3;
-			ai[n].type = GL_FLOAT;
-			ai[n].normalized = GL_FALSE;
-			break;
-		case FMT_32x2_FLOAT:
-			ai[n].kind = KIND_ATTRIB_POINTER;
-			ai[n].size = 2;
-			ai[n].type = GL_FLOAT;
-			ai[n].normalized = GL_FALSE;
-			break;
-		case FMT_32x1_FLOAT:
-			ai[n].kind = KIND_ATTRIB_POINTER;
-			ai[n].size = 1;
-			ai[n].type = GL_FLOAT;
-			ai[n].normalized = GL_FALSE;
-			break;
-		case FMT_8x4_SNORM:
-			ai[n].kind = KIND_ATTRIB_POINTER;
-			ai[n].size = 4;
-			ai[n].type = GL_BYTE;
-			ai[n].normalized = GL_TRUE;
-			break;
-		case FMT_8x4_UNORM:
-			ai[n].kind = KIND_ATTRIB_POINTER;
-			ai[n].size = 4;
-			ai[n].type = GL_UNSIGNED_BYTE;
-			ai[n].normalized = GL_TRUE;
-			break;
-		case FMT_8x2_UNORM:
-			ai[n].kind = KIND_ATTRIB_POINTER;
-			ai[n].size = 2;
-			ai[n].type = GL_UNSIGNED_BYTE;
-			ai[n].normalized = GL_TRUE;
-			break;
-		case FMT_8x1_UNORM:
-			ai[n].kind = KIND_ATTRIB_POINTER;
-			ai[n].size = 1;
-			ai[n].type = GL_UNSIGNED_BYTE;
-			ai[n].normalized = GL_TRUE;
-			break;
-		case FMT_8x4_UINT:
-			ai[n].kind = KIND_ATTRIB_IPOINTER;
-			ai[n].size = 4;
-			ai[n].type = GL_BYTE;
-			ai[n].normalized = GL_FALSE;
-			break;
-		case FMT_8x2_UINT:
-			ai[n].kind = KIND_ATTRIB_IPOINTER;
-			ai[n].size = 2;
-			ai[n].type = GL_BYTE;
-			ai[n].normalized = GL_FALSE;
-			break;
-		case FMT_8x1_UINT:
-			ai[n].kind = KIND_ATTRIB_IPOINTER;
-			ai[n].size = 1;
-			ai[n].type = GL_BYTE;
-			ai[n].normalized = GL_FALSE;
-			break;
-		default:
-			return error("unknown format %d\n", in->format);
-		}
-	}
-	*out = ai;
-	return 0;
-};
+void IndexBuffer::load(void *data, unsigned size) {
+	if (id == 0)
+		glGenBuffers(1, &id);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
+	sz = size;
+}
 
-void dump_compile_error(unsigned id) {
+void UniformBuffer::load(void *data, unsigned size) {
+	if (id == 0)
+		glGenBuffers(1, &id);
+	glBindBuffer(GL_UNIFORM_BUFFER, id);
+	glBufferData(GL_UNIFORM_BUFFER, size, data, GL_STATIC_DRAW);
+	sz = size;
+}
+
+static void dump_compile_error(unsigned id) {
 	int len;
 	char *buf;
 	glGetShaderiv(id, GL_INFO_LOG_LENGTH, &len);
@@ -332,7 +284,7 @@ void dump_compile_error(unsigned id) {
 	}
 }
 
-void dump_link_error(unsigned id) {
+static void dump_link_error(unsigned id) {
 	int len;
 	char *buf;
 	glGetProgramiv(id, GL_INFO_LOG_LENGTH, &len);
@@ -346,123 +298,53 @@ void dump_link_error(unsigned id) {
 	}
 }
 
-int App::compileShader(VertexShader *vs, const char *fn,
-	void *data, unsigned len, int raw,
-	AttribInfo *layout, unsigned lcount) {
-
-	unsigned pgm, id;
+int Program::link(VertexShader *vs, PixelShader *ps) {
+	unsigned n;
 	int r;
-
-	id = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(id, 1, (const char**) &data, NULL);
-	glCompileShader(id);
-	glGetShaderiv(id, GL_COMPILE_STATUS, &r);
+	n = glCreateProgram();
+	glAttachShader(n, vs->id);
+	glAttachShader(n, ps->id);
+	glLinkProgram(n);
+	glGetProgramiv(n, GL_LINK_STATUS, &r);
 	if (!r) {
-		dump_compile_error(id);
-		glDeleteShader(id);
-		return error("vertex shader '%s' compile error" ,fn);
+		dump_link_error(n);
+		glDeleteProgram(n);
+		return error("shader program link error");
 	}
-	fprintf(stderr,"COMPILE %d\n", r);
-	
-	/* we need to compile a program to lookup the indices... */
-	pgm = glCreateProgram();
-	glAttachShader(pgm, id);
-	glLinkProgram(pgm);
-	glGetProgramiv(pgm, GL_LINK_STATUS, &r);
-	if (!r) {
-		dump_link_error(id);
-		glDeleteProgram(pgm);
-		glDeleteShader(id);
-		return error("vertex shader '%s' link error", fn);
-	}
-
-	r = setup_attr_info(&vs->ai, layout, lcount, pgm);
-	glDeleteProgram(pgm);
-	if (r < 0) {
-		glDeleteShader(id);
-		return error("vertex shader '%s' bind error", fn);
-	}
-	vs->info = layout;
-	vs->count = lcount;
-	vs->vs = id;
-	printx("VertexShader %d compiled\n", id);
+	if (id)
+		glDeleteProgram(id);
+	id = n;
 	return 0;
 }
 
-int App::compileShader(PixelShader *ps, const char *fn,
-	void *data, unsigned len, int raw) {
+static int _load_shader(unsigned *out, const char *fn, unsigned type) {
+	void *data;
+	unsigned sz;
 	unsigned id;
 	int r;
-	id = glCreateShader(GL_FRAGMENT_SHADER);
+	if (!(data = load_file(fn, &sz)))
+		return error("cannot load shader source '%s'", fn);
+	id = glCreateShader(type);
 	glShaderSource(id, 1, (const char **) &data, NULL);
 	glCompileShader(id);
 	glGetShaderiv(id, GL_COMPILE_STATUS, &r);
 	if (!r) {
 		dump_compile_error(id);
 		glDeleteShader(id);
-		return error("pixel shader '%s' compile error", fn);
+		return error("shader '%s' compile error", fn);
 	}
-	ps->ps = id;
-	printx("PixelShader %d compiled\n", id);
+	if (*out)
+		glDeleteShader(*out);
+	*out = id;
 	return 0;
 }
 
-int App::loadShader(VertexShader *vs, const char *fn,
-	AttribInfo *layout, unsigned lcount) {
-	void *data;
-	unsigned sz;
-	int r;
-	if (!(data = load_file(fn, &sz)))
-		return error("cannot load file '%s'", fn);
-	r = compileShader(vs, fn, data, sz, 0, layout, lcount);
-	free(data);
-	return r;
+int PixelShader::load(const char *fn) {
+	return _load_shader(&id, fn, GL_FRAGMENT_SHADER);
 }
 
-int App::loadShader(PixelShader *ps, const char *fn) {
-	void *data;
-	unsigned sz;
-	int r;
-	if (!(data = load_file(fn, &sz)))
-		return error("cannot load file '%s'", fn);
-	r = compileShader(ps, fn, data, sz, 0);
-	free(data);
-	return r;
-}
-
-int App::initConfig(InputConfiguration *ic, VertexShader *vs, PixelShader *ps) {
-	unsigned pgm, vao;
-	int r;
-	// TODO program cache
-	pgm = glCreateProgram();
-	glAttachShader(pgm, vs->vs);
-	glAttachShader(pgm, ps->ps);
-	glLinkProgram(pgm);
-	glGetProgramiv(pgm, GL_LINK_STATUS, &r);
-	if (!r) {
-		dump_link_error(pgm);
-		glDeleteProgram(pgm);
-		return error("program link error");
-	}
-	bind_attr_info(vs->ai, vs->info, vs->count, pgm);
-	glGenVertexArrays(1, &vao);
-	CHECK();
-	glBindVertexArray(ic->vao);
-	CHECK();
-	ic->vao = vao;
-	ic->pgm = pgm;
-	ic->vs = vs;
-	ic->ps = ps;
-	printx("Program %d linked\n", pgm);
-	return 0;
-}
-
-void App::useConfig(InputConfiguration *ic) {
-	this->ic = ic;
-	glBindVertexArray(ic->vao);
-	CHECK();
-	glUseProgram(ic->pgm);
-	CHECK();
+int VertexShader::load(const char *fn) {
+	return _load_shader(&id, fn, GL_VERTEX_SHADER);
 }
 
 int App::loadTextureRGBA(Texture2D *tex, const char *fn, int genmips) {
@@ -488,105 +370,9 @@ int App::createTextureRGBA(Texture2D *tex, void *data, unsigned w, unsigned h, i
 	return 0;
 }
 
-int App::initBuffer(VertexBuffer *vb, void *data, int sz) {
-	if (vb->buf)
-		glDeleteBuffers(1, &vb->buf);
-	glGenBuffers(1, &vb->buf);
-	vb->sz = sz;
-	if (data) {
-		glBindBuffer(GL_ARRAY_BUFFER, vb->buf);	
-		CHECK();
-		glBufferData(GL_ARRAY_BUFFER, sz, data, GL_STATIC_DRAW);
-		CHECK();
-	}
-	return 0;
-}
-int App::initBuffer(IndexBuffer *ib, void *data, int sz) {
-	glGenBuffers(1, &ib->buf);
-	ib->sz = sz;
-	if (data) {
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->buf);
-		CHECK();
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sz, data, GL_STATIC_DRAW);
-		CHECK();
-	}
-	return 0;
-}
-int App::initBuffer(UniformBuffer *ub, void *data, int sz) {
-	glGenBuffers(1, &ub->buf);
-	ub->sz = sz;
-	if (data) {
-		glBindBuffer(GL_UNIFORM_BUFFER, ub->buf);
-		CHECK();
-		glBufferData(GL_UNIFORM_BUFFER, sz, data, GL_STATIC_DRAW);
-		CHECK();
-	}
-	return 0;
-}
-
-void App::updateBuffer(VertexBuffer *vb, void *data) {
-	glBindBuffer(GL_ARRAY_BUFFER, vb->buf);
-	CHECK();
-	glBufferData(GL_ARRAY_BUFFER, vb->sz, data, GL_STATIC_DRAW);
-	CHECK();
-}
-void App::updateBuffer(IndexBuffer *ib, void *data) {
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->buf);
-	CHECK();
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, ib->sz, data, GL_STATIC_DRAW);
-	CHECK();
-}
-void App::updateBuffer(UniformBuffer *ub, void *data) {
-	glBindBuffer(GL_UNIFORM_BUFFER, ub->buf);
-	CHECK();
-	glBufferData(GL_UNIFORM_BUFFER, ub->sz, data, GL_STATIC_DRAW);
-	CHECK();
-}
-
-void App::useBuffer(VertexBuffer *vb, int slot, unsigned stride, unsigned offset) {
-	glBindBuffer(GL_ARRAY_BUFFER, vb->buf);
-	CHECK();
-	config_attr_info(ic->vs->ai, ic->vs->count, slot, stride);
-	ic->vbuf[slot] = vb;
-}
-void App::useBuffer(IndexBuffer *ib) {
-	ic->ibuf = ib;
-}
-void App::useBuffer(UniformBuffer *ub, int slot) {
-	if (ic->ubuf[slot] != ub) {
-		ic->ubuf[slot] = ub;
-		/* simple 1:1 binding */
-		// TODO: smarting binding, avoid having to glBindBufferBase() on every draw
-		glUniformBlockBinding(ic->pgm, slot, slot);
-	}
-}
 void App::useTexture(Texture2D *tex, int slot) {
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, tex->tex);
-}
-
-void _prepare(InputConfiguration *ic) {
-	int n;
-	if (ic->ibuf)
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ic->ibuf->buf);
-	for (n = 0; n < 16; n++)
-		if (ic->ubuf[n])
-			glBindBufferBase(GL_UNIFORM_BUFFER, n, ic->ubuf[n]->buf);
-}
-void App::drawIndexedInstanced(unsigned numindices, unsigned numinstances) {
-	_prepare(ic);
-	glDrawElementsInstanced(GL_TRIANGLES, numindices, GL_UNSIGNED_SHORT, NULL, numinstances);
-	CHECK();
-}
-void App::drawInstanced(unsigned numvertices, unsigned numinstances) {
-	_prepare(ic);
-	glDrawArraysInstanced(GL_TRIANGLES, 0, numvertices, numinstances);
-	CHECK();
-}
-void App::drawIndexed(unsigned numindices) {
-	_prepare(ic);
-	glDrawElements(GL_TRIANGLES, numindices, GL_UNSIGNED_SHORT, NULL);
-	CHECK();
 }
 
 void App::setBlend(int enable) {

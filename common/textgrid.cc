@@ -29,10 +29,17 @@
 #include "TextPS.h"
 #endif
 
-static AttribInfo text_layout_desc[] = {
-	{ "POSITION",  0, FMT_32x2_FLOAT, 0, 0, VERTEX_DATA, 0 },
-	{ "TEXCOORD",  0, FMT_32x2_FLOAT, 0, 8, VERTEX_DATA, 0 },
-	{ "CHARACTER", 0, FMT_8x1_UINT,   1, 0, INSTANCE_DATA, 1 },
+//static AttribInfo text_layout_desc[] = {
+//	{ "POSITION",  0, FMT_32x2_FLOAT, 0, 0, VERTEX_DATA, 0 },
+//	{ "TEXCOORD",  0, FMT_32x2_FLOAT, 0, 8, VERTEX_DATA, 0 },
+//	{ "CHARACTER", 0, FMT_8x1_UINT,   1, 0, INSTANCE_DATA, 1 },
+//};
+
+// idx, src, dst, count, offset, stride, divisor
+static VertexAttrDesc layout[] = {
+	{ 0, SRC_FLOAT, DST_FLOAT,   2, 0, 16, 0 },
+	{ 1, SRC_FLOAT, DST_FLOAT,   2, 8, 16, 0 },
+	{ 2, SRC_UINT8, DST_INTEGER, 1, 0,  1, 1 },
 };
 
 static float unit_box_2d[] = {
@@ -52,7 +59,11 @@ int TextGrid::init(App *a, int w, int h) {
 		unsigned pad0;
 		unsigned pad1;
 	} cb;
-
+	VertexBuffer *data[] = {
+		&vtx,
+		&vtx,
+		&cbuf,
+	};
 	width = w;
 	height = h;
 	dirty = 0;
@@ -64,30 +75,24 @@ int TextGrid::init(App *a, int w, int h) {
 
 	if (a->loadTextureRGBA(&texture, "font-vincent-8x8.png", 0))
 		return -1;
-	if (a->initBuffer(&vtx, unit_box_2d, sizeof(unit_box_2d)))
+
+	if (ps.load("TextPS.glsl"))
 		return -1;
-	if (a->initBuffer(&cbuf, grid, width * height))
+	if (vs.load("TextVS.glsl"))
 		return -1;
-	if (a->initBuffer(&ubuf, NULL, sizeof(cb)))
+	if (pgm.link(&vs, &ps))
 		return -1;
-	if (a->loadShader(&ps, "TextPS.glsl"))
-		return -1;
-	if (a->loadShader(&vs, "TextVS.glsl",
-		text_layout_desc, sizeof(text_layout_desc)/sizeof(text_layout_desc[0])))
-		return -1;
+
 
 	cb.proj.setOrtho(0, w, 0, h, -1, 1);	
 	cb.cw = width;
 	cb.ch = height;
-	a->updateBuffer(&ubuf, &cb);
 
-	a->initConfig(&cfg, &vs, &ps);
+	vtx.load(unit_box_2d, sizeof(unit_box_2d));
+	cbuf.load(grid, width * height);
+	ubuf.load(&cb, sizeof(cb));
 
-	a->useConfig(&cfg);
-	a->useBuffer(&ubuf, 0);
-	a->useTexture(&texture, 0);
-	a->useBuffer(&vtx, 0, 16, 0);
-	a->useBuffer(&cbuf, 1, 1, 0);
+	attr.init(layout, data, sizeof(layout) / sizeof(layout[0]));
 
 	return 0;
 }
@@ -95,10 +100,13 @@ int TextGrid::init(App *a, int w, int h) {
 void TextGrid::render(App *a) {
 	if (dirty) {
 		dirty = 0;
-		a->updateBuffer(&cbuf, grid);
+		cbuf.load(grid, width * height);
 	}
-	a->useConfig(&cfg);
-	a->drawInstanced(6, width * height);
+	pgm.use();
+	attr.use();
+	ubuf.use(0);
+	a->useTexture(&texture, 0);
+	glDrawArraysInstanced(GL_TRIANGLES, 0, 6, width * height);
 }
 
 void TextGrid::clear(void) {
