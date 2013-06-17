@@ -317,6 +317,16 @@ int Program::link(VertexShader *vs, PixelShader *ps) {
 	return 0;
 }
 
+int Program::load(const char *vsfn, const char *psfn) {
+	VertexShader vs;
+	PixelShader ps;
+	if (vs.load(vsfn))
+		return -1;
+	if (ps.load(psfn))
+		return -1;
+	return link(&vs, &ps);
+}
+
 static int _load_shader(unsigned *out, const char *fn, unsigned type) {
 	void *data;
 	unsigned sz;
@@ -347,37 +357,27 @@ int VertexShader::load(const char *fn) {
 	return _load_shader(&id, fn, GL_VERTEX_SHADER);
 }
 
-int App::loadTextureRGBA(Texture2D *tex, const char *fn, int genmips) {
+int Texture2D::load(const char *fn, int genmips) {
 	void *data;
 	unsigned dw, dh;
 	int r;
 	if (!(data = load_png_rgba(fn, &dw, &dh, 0)))
 		return error("cannot load '%s'", fn);
-	r = createTextureRGBA(tex, data, dw, dh, genmips);
+	r = load(data, dw, dh, genmips);
 	free(data);
 	return r;
 }
-int App::createTextureRGBA(Texture2D *tex, void *data, unsigned w, unsigned h, int genmips) {
-	unsigned id;
-	glGenTextures(1, &id);
+
+int Texture2D::load(void *data, unsigned w, unsigned h, int genmips) {
+	if (id == 0)
+		glGenTextures(1, &id);
 	glBindTexture(GL_TEXTURE_2D, id);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+		GL_RGBA, GL_UNSIGNED_BYTE, data);
 	if (genmips)
 		glGenerateMipmap(GL_TEXTURE_2D);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	tex->tex = id;
 	return 0;
 }
 
-void App::useTexture(Texture2D *tex, int slot) {
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, tex->tex);
-}
-
-void App::setBlend(int enable) {
-	if (enable)
-		glEnable(GL_BLEND);
-	else
-		glDisable(GL_BLEND);
-}

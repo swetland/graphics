@@ -73,7 +73,7 @@ int TextGrid::init(App *a, int w, int h) {
 		return -1;
 	clear();
 
-	if (a->loadTextureRGBA(&texture, "font-vincent-8x8.png", 0))
+	if (texture.load("font-vincent-8x8.png", 0))
 		return -1;
 
 	if (ps.load("TextPS.glsl"))
@@ -105,7 +105,7 @@ void TextGrid::render(App *a) {
 	pgm.use();
 	attr.use();
 	ubuf.use(0);
-	a->useTexture(&texture, 0);
+	texture.use(0);
 	glDrawArraysInstanced(GL_TRIANGLES, 0, 6, width * height);
 }
 

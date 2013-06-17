@@ -66,10 +66,10 @@ private:
 	VertexAttributes attr;
 
 	TextGrid text;
-	float nx,ny;
 
 	mat4 proj;
-	float rx, ry, zoom;
+	float zoom, rx, ry;
+	float nx,ny;
 	struct model *m;
 };
 
@@ -211,9 +211,9 @@ oops:
 	text.printf(0, 2, "zm: %8.4f", zoom);
 	text.printf(0, -1, "hello.cc");
 
-	setBlend(1);
+	glEnable(GL_BLEND);
 	text.render(this);
-	setBlend(0);
+	glDisable(GL_BLEND);
 }
 
 App *createApp(void) {

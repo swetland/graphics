@@ -78,12 +78,19 @@ struct Program {
 	~Program() { if (id) { glDeleteProgram(id); } };
 	void use(void) { glUseProgram(id); }
 	int link(VertexShader *vs, PixelShader *ps);
+	int load(const char *vsfn, const char *psfn);
 };
 
 struct Texture2D {
-	unsigned tex;
-	Texture2D() : tex(0) {};
-	~Texture2D() { if (tex) { glDeleteTextures(1, &tex); } };
+	unsigned id;
+	Texture2D() : id(0) {};
+	~Texture2D() { if (id) { glDeleteTextures(1, &id); } };
+	int load(const char *fn, int genmips);
+	int load(void *data, unsigned w, unsigned h, int genmips);
+	void use(unsigned index) {
+		glActiveTexture(GL_TEXTURE0 + index);
+		glBindTexture(GL_TEXTURE_2D, id);
+	}
 };
 
 struct UniformBuffer {
@@ -135,12 +142,6 @@ public:
 	/* glue - do not use */
 	int start(void);
 	void handleEvents(void);
-
-	int loadTextureRGBA(Texture2D *tex, const char *fn, int genmips);
-	int createTextureRGBA(Texture2D *tex, void *data, unsigned w, unsigned h, int genmips);
-
-	void useTexture(Texture2D *tex, int slot);
-	void setBlend(int enable);
 
 protected:
 	int width;
