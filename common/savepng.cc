@@ -72,7 +72,7 @@ close_and_exit:
 	fclose(fp);
 exit:
 	if (status)
-		fprintf(stderr,"failed to load '%s'\n", fn);
+		fprintf(stderr,"failed to save '%s'\n", fn);
 	return status;
 }
 
