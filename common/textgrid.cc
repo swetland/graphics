@@ -76,9 +76,9 @@ int TextGrid::init(App *a, int w, int h) {
 	if (texture.load("font-vincent-8x8.png", 0))
 		return -1;
 
-	if (ps.load("TextPS.glsl"))
+	if (ps.load("textgrid.fragment"))
 		return -1;
-	if (vs.load("TextVS.glsl"))
+	if (vs.load("textgrid.vertex"))
 		return -1;
 	if (pgm.link(&vs, &ps))
 		return -1;

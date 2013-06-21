@@ -1,6 +1,8 @@
 #version 150
 #extension GL_ARB_explicit_attrib_location : enable
 
+-- vertex
+
 layout(std140) uniform cb0 {
 	mat4 MVP;
 	int cw;
@@ -38,4 +40,14 @@ void main() {
 	if (CHARACTER == uint(0)) pos.z = -1.1;
 
 	gl_Position = pos;
+}
+
+-- fragment
+
+uniform sampler2D uTexture0;
+
+in vec2 vTEXCOORD;
+
+void main() {
+	gl_FragColor = texture2D(uTexture0, vTEXCOORD);
 }

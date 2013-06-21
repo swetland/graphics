@@ -54,8 +54,8 @@ private:
 	int vs_mtime;
 };
 
-static const char *psfn = "TestPS.glsl";
-static const char *vsfn = "TestVS.glsl";
+static const char *psfn = "simple.fragment";
+static const char *vsfn = "simple.vertex";
 
 TestApp::TestApp() : App(), r(0.0) {
 }
@@ -96,6 +96,7 @@ void TestApp::render(void) {
 	unsigned stride, offset;
 	int t;
 
+#if 0
 	t = file_get_mtime(psfn);
 	if (t != ps_mtime) {
 		printx("ps change!\n");
@@ -110,7 +111,7 @@ void TestApp::render(void) {
 		vs_mtime = t;
 		pgm.link(&vs, &ps);
 	}
-
+#endif
 	struct {
 		mat4 mvp;
 		mat4 mv;

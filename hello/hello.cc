@@ -119,9 +119,9 @@ int TestApp::init(void) {
 	VertexBuffer *data[] = {
 		&vbuf, &vbuf, &vbuf, &lbuf,
 	};
-	if (ps.load("SimplePS.glsl"))
+	if (ps.load("simple.fragment"))
 		return -1;
-	if (vs.load("SimpleVS.glsl"))
+	if (vs.load("simple.vertex"))
 		return -1;
 	if (pgm.link(&vs, &ps))
 		return -1;
