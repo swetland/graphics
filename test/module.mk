@@ -1,3 +1,4 @@
+M_PATH := $(modulepath)
 
 M_NAME := test
 M_OBJS := test.o

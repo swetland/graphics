@@ -13,21 +13,32 @@
 ## limitations under the License.
 
 M_NAME := $(strip $(M_NAME))
+M_PATH := $(strip $(M_PATH))
 
 # sanity check
 ifeq "$(M_NAME)" ""
 $(error No module name specified)
 endif
+ifeq "$(M_PATH)" ""
+$(error No module path specified)
+endif
 
-M_OBJS := $(addprefix $(OUT_OBJ)/$(M_NAME)/,$(M_OBJS))
+M_OBJS := $(addprefix $(OUT_OBJ)/$(M_PATH)/,$(M_OBJS))
 DEPS += $(M_OBJS:%o=%d)
 
 ALL += $(OUT_LIB)/$(M_NAME).a
 
-$(OUT_OBJ)/$(M_NAME)/%.o: $(M_NAME)/%.cc
+$(OUT_OBJ)/$(M_PATH)/%.o: _CFLAGS := $(M_CFLAGS)
+
+$(OUT_OBJ)/$(M_PATH)/%.o: $(M_PATH)/%.cc
 	@$(MKDIR)
 	@echo compile $<
-	$(QUIET)g++ $(HOST_CFLAGS) -c $< -o $@ -MD -MT $@ -MF $(@:%o=%d)
+	$(QUIET)g++ $(HOST_CFLAGS) $(_CFLAGS) -c $< -o $@ -MD -MT $@ -MF $(@:%o=%d)
+
+$(OUT_OBJ)/$(M_PATH)/%.o: $(M_PATH)/%.c
+	@$(MKDIR)
+	@echo compile $<
+	$(QUIET)g++ $(HOST_CFLAGS) $(_CFLAGS) -c $< -o $@ -MD -MT $@ -MF $(@:%o=%d)
 
 $(OUT_LIB)/$(M_NAME).a: _OBJS := $(M_OBJS)
 $(OUT_LIB)/$(M_NAME).a: $(M_OBJS)
@@ -41,4 +52,4 @@ $(info module $(M_NAME))
 M_LIBS :=
 M_OBJS :=
 M_NAME :=
-
+M_CLFAGS :=

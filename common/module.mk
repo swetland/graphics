@@ -1,3 +1,4 @@
+M_PATH := $(modulepath)
 
 M_NAME := common
 M_OBJS := glapp.o

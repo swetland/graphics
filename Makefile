@@ -46,6 +46,8 @@ MKDIR = if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
 
 QUIET ?= @
 
+modulepath = $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
+
 # additional modules
 include $(wildcard */module.mk)
 
