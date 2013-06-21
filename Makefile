@@ -24,6 +24,7 @@ SDLLIBS := $(shell $(SDLCFG) --static-libs)
 HOST_CFLAGS := $(SDLFLAGS) -Wall -g -O2
 HOST_CFLAGS += -std=c++0x
 HOST_CFLAGS += -Icommon
+HOST_CFLAGS += -Ifreetype-2.5.0.1/include
 #HOST_CFLAGS += -ffunction-sections -fdata-sections
 
 HOST_LFLAGS := -static-libstdc++
