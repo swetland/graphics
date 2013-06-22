@@ -92,7 +92,9 @@ struct Program {
 
 struct Texture2D {
 	unsigned id;
-	Texture2D() : id(0) {};
+	unsigned width;
+	unsigned height;
+	Texture2D() : id(0), width(0), height(0) {};
 	~Texture2D() { if (id) { glDeleteTextures(1, &id); } };
 	int load(const char *fn, int genmips);
 	int load(void *data, unsigned w, unsigned h, int genmips);
@@ -151,6 +153,9 @@ public:
 	/* glue - do not use */
 	int start(void);
 	void handleEvents(void);
+
+	int getWidth(void) { return width; }
+	int getHeight(void) { return height; }
 
 protected:
 	int width;

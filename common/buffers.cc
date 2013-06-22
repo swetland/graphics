@@ -149,6 +149,8 @@ int Texture2D::load(void *data, unsigned w, unsigned h, int genmips) {
 		glGenerateMipmap(GL_TEXTURE_2D);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	width = w;
+	height = h;
 	return 0;
 }
 
