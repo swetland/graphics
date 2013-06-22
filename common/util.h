@@ -16,6 +16,14 @@
 #ifndef _UTIL_H_
 #define _UTIL_H_
 
+/* basic datatypes */
+typedef unsigned int u32;
+typedef int s32;
+typedef unsigned short u16;
+typedef short s16;
+typedef unsigned char u8;
+typedef signed char s8;
+
 /* file io helpers */
 void *load_png_rgba(const char *fn, unsigned *width, unsigned *height, int texture);
 void *load_png_gray(const char *fn, unsigned *width, unsigned *height, int texture);
