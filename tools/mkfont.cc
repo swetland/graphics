@@ -114,7 +114,7 @@ retry:
 			goto retry;
 		}
 		info[n].x = nx;
-		info[n].y = ny;
+		info[n].y = max - ny - h;
 		info[n].w = w - 1;
 		info[n].h = h - 1;
 		info[n].dx = bb.xMin;
