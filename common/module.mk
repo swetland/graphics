@@ -12,6 +12,7 @@ M_OBJS += matrix.o
 M_OBJS += savepng.o
 M_OBJS += simplexnoise.o
 M_OBJS += textgrid.o
+M_OBJS += texturefont.o
 M_LIBS := common
 
 include build/lib.mk

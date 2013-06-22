@@ -16,6 +16,9 @@
 #ifndef _TEXTUREFONT_H_
 #define _TEXTUREFONT_H_
 
+#include <app.h>
+#include <matrix.h>
+
 struct CharInfo {
 	// location in texture
 	u16 x;
@@ -39,5 +42,49 @@ struct FontInfo {
 };
 
 #define TEXTUREFONT_MAGIC 0x746E6F46
+
+struct CharData {
+	u16 x, y, w, h;
+	u16 s, t;
+	u32 rgba;
+};
+
+class TextureFont {
+public:
+	int init(App *app, const char *fontname);
+	void render(App *app);
+	void clear(void);
+	void printf(int x, int y, const char *fmt, ...);
+	void puts(int x, int y, const char *s);
+	void setColor(unsigned rgba);
+private:
+	FontInfo *header;
+	CharInfo *info;
+	unsigned first;
+	unsigned last;
+
+	struct {
+		mat4 mvp;
+		float dim;
+	} u;
+
+	UniformBuffer ubuf;
+	VertexBuffer vtx;
+	VertexBuffer cbuf;
+	PixelShader ps;
+	GeometryShader gs;
+	VertexShader vs;
+	Program pgm;
+	Texture2D glyphs;
+	VertexAttributes attr;
+
+	CharData *data;
+	CharData *next;
+	unsigned count;
+	unsigned max;
+
+	unsigned color;
+	int dirty;
+};
 
 #endif
