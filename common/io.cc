@@ -23,7 +23,7 @@
 
 static char base_path[1024 + 8] = "";
 
-static const char *search[] = {
+static const char *defaultsearch[] = {
 #ifdef _WIN32
 	"assets\\",
 #else
@@ -33,6 +33,17 @@ static const char *search[] = {
 	NULL,
 };
 
+static const char *nosearch[] = {
+	"",
+	NULL,
+};
+
+static const char **search = defaultsearch;
+
+void io_ignore_asset_paths(void) {
+	base_path[0] = 0;
+	search = nosearch;
+}
 FILE *fopen_asset(const char *fn, const char *kind) {
 	char path[2048 + 64];
 	FILE *fp;

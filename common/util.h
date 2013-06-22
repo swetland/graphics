@@ -25,6 +25,9 @@ int file_get_mtime(const char *fn);
 int save_png_rgba(const char *fn, void *data, unsigned width, unsigned height);
 int save_png_gray(const char *fn, void *data, unsigned width, unsigned height);
 
+/* tread filenames as normal filenames, don't use asset search process */
+void io_ignore_asset_paths(void);
+
 /* model helpers */
 
 struct model {
