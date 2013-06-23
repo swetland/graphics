@@ -43,7 +43,7 @@ int TextureFont::init(App *app, const char *fontname) {
 	next = data;
 
 	sprintf(tmp, "%s.font.png", fontname);
-	if (glyphs.load(tmp, 0))
+	if (glyphs.load(tmp, OPT_TEX2D_GRAY))
 		goto fail;
 
 	sprintf(tmp, "%s.font.dat", fontname);

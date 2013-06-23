@@ -128,24 +128,28 @@ void UniformBuffer::load(void *data, unsigned size) {
 	sz = size;
 }
 
-int Texture2D::load(const char *fn, int genmips) {
+int Texture2D::load(const char *fn, int options) {
 	void *data;
 	unsigned dw, dh;
 	int r;
-	if (!(data = load_png_rgba(fn, &dw, &dh, 0)))
+	if (!(data = load_png_rgba(fn, &dw, &dh, options)))
 		return error("cannot load '%s'", fn);
-	r = load(data, dw, dh, genmips);
+	r = load(data, dw, dh, options);
 	free(data);
 	return r;
 }
 
-int Texture2D::load(void *data, unsigned w, unsigned h, int genmips) {
+int Texture2D::load(void *data, unsigned w, unsigned h, int options) {
 	if (id == 0)
 		glGenTextures(1, &id);
 	glBindTexture(GL_TEXTURE_2D, id);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
-		GL_RGBA, GL_UNSIGNED_BYTE, data);
-	if (genmips)
+	if (options & OPT_TEX2D_GRAY)
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+			GL_RED, GL_UNSIGNED_BYTE, data);
+	else
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+			GL_RGBA, GL_UNSIGNED_BYTE, data);
+	if (options & OPT_TEX2D_GEN_MIPMAP)
 		glGenerateMipmap(GL_TEXTURE_2D);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);

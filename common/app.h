@@ -92,14 +92,18 @@ struct Program {
 	int load(const char *vsfn, const char *gsfn, const char *psfn);
 };
 
+#define OPT_TEX2D_GEN_MIPMAP	0x0001000
+#define OPT_TEX2D_RGBA		0x0000000
+#define OPT_TEX2D_GRAY		0x0000002
+
 struct Texture2D {
 	unsigned id;
 	unsigned width;
 	unsigned height;
 	Texture2D() : id(0), width(0), height(0) {};
 	~Texture2D() { if (id) { glDeleteTextures(1, &id); } };
-	int load(const char *fn, int genmips);
-	int load(void *data, unsigned w, unsigned h, int genmips);
+	int load(const char *fn, int options);
+	int load(void *data, unsigned w, unsigned h, int options);
 	void use(unsigned index) {
 		glActiveTexture(GL_TEXTURE0 + index);
 		glBindTexture(GL_TEXTURE_2D, id);

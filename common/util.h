@@ -25,8 +25,11 @@ typedef unsigned char u8;
 typedef signed char s8;
 
 /* file io helpers */
-void *load_png_rgba(const char *fn, unsigned *width, unsigned *height, int texture);
-void *load_png_gray(const char *fn, unsigned *width, unsigned *height, int texture);
+#define OPT_PNG_INVERTY 0x0001
+#define OPT_PNG_GRAY    0x0002
+
+void *load_png_rgba(const char *fn, unsigned *width, unsigned *height, int options);
+void *load_png_gray(const char *fn, unsigned *width, unsigned *height, int options);
 void *load_file(const char *fn, unsigned *sz);
 int file_get_mtime(const char *fn);
 
