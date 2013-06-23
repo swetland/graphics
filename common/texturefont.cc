@@ -67,8 +67,10 @@ int TextureFont::init(App *app, const char *fontname) {
 	if (pgm.load("texturefont.vs", "texturefont.gs", "texturefont.fs"))
 		goto fail;
 
-	u.mvp.setOrtho(0, app->getWidth() - 1, app->getHeight() - 1, 0, -1, 1);
+	u.mvp.setOrtho(0, app->getWidth(), app->getHeight(), 0, -1, 1);
 	u.dim = glyphs.width;
+	u.adj[0] = 0.5 / float(glyphs.width);
+	u.adj[1] = 0.5 / float(glyphs.width);
 	vtx.load(data, sizeof(CharData) * max);
 	ubuf.load(&u, sizeof(u));
 

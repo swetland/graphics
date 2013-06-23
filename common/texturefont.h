@@ -65,6 +65,7 @@ private:
 
 	struct {
 		mat4 mvp;
+		float adj[2];
 		float dim;
 	} u;
 

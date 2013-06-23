@@ -3,6 +3,7 @@
 
 layout(std140) uniform udata0 {
 	mat4 MVP;
+	vec2 adj;
 	float dim;
 };
 
@@ -37,24 +38,26 @@ out vec4 color;
 
 void main() {
 	vec4 p = gl_in[0].gl_Position;
+	vec2 sz = size[0];
+	vec2 tsz = sz - vec2(1.0,1.0);
 
-	gl_Position = MVP * vec4(p.x, p.y - size[0].y, 0.0, 1.0);
-	s0tc = tex[0] / dim;
+	gl_Position = MVP * vec4(p.x, p.y - sz.y, 0.0, 1.0);
+	s0tc = tex[0] / dim + adj;
 	color = vcolor[0];
 	EmitVertex();
 
-	gl_Position = MVP * vec4(p.x + size[0].x, p.y - size[0].y, 0.0, 1.0);
-	s0tc = (tex[0] + vec2(size[0].x,0)) / dim;
+	gl_Position = MVP * vec4(p.x + sz.x, p.y - sz.y, 0.0, 1.0);
+	s0tc = (tex[0] + vec2(tsz.x,0)) / dim + adj;
 	color = vcolor[0];
 	EmitVertex();
 
 	gl_Position = MVP * vec4(p.x, p.y, 0.0, 1.0);
-	s0tc = (tex[0] + vec2(0,size[0].y)) / dim;
+	s0tc = (tex[0] + vec2(0,tsz.y)) / dim + adj;
 	color = vcolor[0];
 	EmitVertex();
 
-	gl_Position = MVP * vec4(p.x + size[0].x, p.y, 0.0, 1.0);
-	s0tc = (tex[0] + size[0]) / dim;
+	gl_Position = MVP * vec4(p.x + sz.x, p.y, 0.0, 1.0);
+	s0tc = (tex[0] + tsz) / dim + adj;
 	color = vcolor[0];
 	EmitVertex();
 
