@@ -16,8 +16,8 @@
 #ifndef _TEXTUREFONT_H_
 #define _TEXTUREFONT_H_
 
-#include <app.h>
-#include <matrix.h>
+#include "app.h"
+#include "matrix.h"
 
 struct CharInfo {
 	// location in texture

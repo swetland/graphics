@@ -103,6 +103,7 @@
     <ClInclude Include="matrix.h" />
     <ClInclude Include="opengl.h" />
     <ClInclude Include="textgrid.h" />
+    <ClInclude Include="texturefont.h" />
     <ClInclude Include="util.h" />
   </ItemGroup>
   <ItemGroup>
@@ -124,6 +125,7 @@
     <ClCompile Include="shaders.cc" />
     <ClCompile Include="simplexnoise.cc" />
     <ClCompile Include="textgrid.cc" />
+    <ClCompile Include="texturefont.cc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

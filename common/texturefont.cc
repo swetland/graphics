@@ -15,10 +15,10 @@
 
 #include <stdio.h>
 
-#include <util.h>
-#include <matrix.h>
-#include <app.h>
-#include <texturefont.h>
+#include "util.h"
+#include "matrix.h"
+#include "app.h"
+#include "texturefont.h"
 
 // idx, src, dst, count, offset, stride, divisor
 static VertexAttrDesc layout[] = {
