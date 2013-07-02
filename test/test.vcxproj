@@ -15,7 +15,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="test.cc" />
+    <ClCompile Include="object.cc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{DA776F1D-F023-4821-B8D6-CF901B8B56A8}</ProjectGuid>

@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "app.h"
 #include "matrix.h"
 #include "util.h"
 #include "textgrid.h"
-
-#include <stdio.h>
-#include <stdlib.h>
 
 // idx, src, dst, count, offset, stride, divisor
 static VertexAttrDesc layout[] = {

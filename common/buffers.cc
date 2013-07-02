@@ -16,10 +16,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#ifdef _WIN32
-#define GLUE_DEFINE_EXTENSIONS 1
-#endif
-
 #include "app.h"
 #include "util.h"
 

@@ -99,7 +99,6 @@
   <ItemGroup>
     <ClInclude Include="app.h" />
     <ClInclude Include="dxapp.h" />
-    <ClInclude Include="glapp.h" />
     <ClInclude Include="glcorearb.h" />
     <ClInclude Include="matrix.h" />
     <ClInclude Include="opengl.h" />
@@ -107,6 +106,7 @@
     <ClInclude Include="util.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="buffers.cc" />
     <ClCompile Include="dxapp.cc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='OpenGL-Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
@@ -121,6 +121,7 @@
     <ClCompile Include="loadpng.cc" />
     <ClCompile Include="matrix.cc" />
     <ClCompile Include="savepng.cc" />
+    <ClCompile Include="shaders.cc" />
     <ClCompile Include="simplexnoise.cc" />
     <ClCompile Include="textgrid.cc" />
   </ItemGroup>
