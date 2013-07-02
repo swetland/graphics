@@ -84,7 +84,7 @@ int TextGrid::init(App *a, int w, int h) {
 		return -1;
 
 
-	cb.proj.setOrtho(0, w - 1, 0, h - 1, -1, 1);	
+	cb.proj.setOrtho(0, w, 0, h, -1, 1);	
 	cb.cw = width;
 	cb.ch = height;
 
