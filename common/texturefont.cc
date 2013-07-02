@@ -112,6 +112,7 @@ void TextureFont::render(App *app) {
 	pgm.use();
 	ubuf.use(0);
 	attr.use();
+	glyphs.use(0);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDrawArrays(GL_POINTS, 0, count);
