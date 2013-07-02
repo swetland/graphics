@@ -1,0 +1,33 @@
+{
+	"folders": [
+		{
+			"path": "common"
+		},
+		{
+			"path": "test"
+		},
+		{
+			"path": "tools"
+		},
+		{
+			"path": "hello"
+		},
+		{
+			"path": "freetype-2.5.0.1"
+		},
+		{
+			"path": "libpng-1.2.50"
+		},
+		{
+			"path": "zlib-1.2.7"
+		}
+	],
+	"build_systems": [
+	{
+		"name": "Default",
+		"cmd": ["make"],
+		"file_regex": "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$",
+		"working_dir": "${project_path}"
+	}
+	]
+}
