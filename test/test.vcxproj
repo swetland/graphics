@@ -45,11 +45,15 @@
     <ExecutablePath>$(DXSDK_DIR)Utilities\bin\x86;$(ExecutablePath)</ExecutablePath>
     <IncludePath>..\libpng-1.2.50;..\zlib-1.2.7;$(DXSDK_DIR)Include;$(IncludePath)</IncludePath>
     <LibraryPath>$(DXSDK_DIR)Lib\x86;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)_$(Configuration)\</OutDir>
+    <IntDir>_$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ExecutablePath>$(DXSDK_DIR)Utilities\bin\x86;$(ExecutablePath)</ExecutablePath>
     <IncludePath>..\libpng-1.2.50;..\zlib-1.2.7;$(DXSDK_DIR)Include;$(IncludePath)</IncludePath>
     <LibraryPath>$(DXSDK_DIR)Lib\x86;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)_$(Configuration)\</OutDir>
+    <IntDir>_$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -63,7 +67,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>common.lib;SDL2.lib;SDL2main.lib;libpng-1.2.50.lib;zlib-1.2.7.lib;OpenGL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
-      <AdditionalLibraryDirectories>..\..\SDL-2.0.0\lib\x86;..\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\SDL-2.0.0\lib\x86;$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>XCOPY "$(ProjectDir)..\..\SDL-2.0.0\lib\x86\SDL2.dll" "$(TargetDir)" /E /I /F /Y
@@ -85,7 +89,7 @@ XCOPY "$(ProjectDir)assets" "$(TargetDir)assets" /E /I /F /Y</Command>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>common.lib;SDL2.lib;SDL2main.lib;libpng-1.2.50.lib;zlib-1.2.7.lib;OpenGL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
-      <AdditionalLibraryDirectories>..\..\SDL-2.0.0\lib\x86;..\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\SDL-2.0.0\lib\x86;$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
