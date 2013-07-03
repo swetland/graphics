@@ -5,8 +5,7 @@ x64
 *.sdf
 *.suo
 *.vcxproj.*
-Debug
-Release
-OpenGL-Debug
 *.opensdf
 out
+_Debug
+_Release
