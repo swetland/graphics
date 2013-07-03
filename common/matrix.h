@@ -20,10 +20,6 @@
 
 #define D2R(d) (((d) * M_PI) / 180.0)
 
-#ifdef _WIN32
-#define M_PI 3.14159265358979323846
-#endif
-
 /* low level operations */
 void __mat4_mul_mat4(float m[16], const float a[16], const float b[16]);
 void __mat4_mul_vec4(float o[4], const float m[16], const float v[4]);
