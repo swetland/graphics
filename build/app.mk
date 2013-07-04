@@ -32,11 +32,13 @@ ASSETS := $(addprefix $(OUT)/,$(ASSETS))
 
 $(OUT)/$(M_PATH)/assets/%: $(M_PATH)/assets/%
 	@$(MKDIR)
-	cp $< $@ 
+	ln -sf "../../../$<" "$@"
+#	cp $< $@ 
 
 $(OUT)/$(M_PATH)/assets/%: common/assets/%
 	@$(MKDIR)
-	cp $< $@ 
+	ln -sf "../../../$<" "$@"
+#	cp $< $@ 
 
 M_LIBS := $(addprefix $(OUT_LIB)/,$(M_LIBS))
 M_LIBS := $(addsuffix .a,$(M_LIBS))
