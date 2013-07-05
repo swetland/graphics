@@ -163,6 +163,9 @@ public:
 	int getWidth(void) { return width; }
 	int getHeight(void) { return height; }
 
+	int keydown(unsigned code) {
+		return keystate[code >> 5] & (1 << (code & 0x1f));
+	}
 protected:
 	int width;
 	int height;
@@ -173,8 +176,9 @@ protected:
 	int mouseBTN;
 	/* mouse position in window coordinates */
 	int mouseWX, mouseWY;
+
 	/* keys down */
-	unsigned char keystate[256];
+	unsigned keystate[16];
 
 private:
 	int _vsync;

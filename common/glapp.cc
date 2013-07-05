@@ -47,19 +47,20 @@ static void quit(void) {
 }
 
 void App::handleEvents(void) {
+	unsigned code;
 	SDL_Event ev;
 
 	while (SDL_PollEvent(&ev)) {
 		switch (ev.type) {
 		case SDL_KEYDOWN:
-			if (ev.key.keysym.sym < 256)
-				keystate[ev.key.keysym.sym] = 1;
-			if (ev.key.keysym.sym == SDLK_ESCAPE)
+			code = ev.key.keysym.scancode;
+			keystate[code >> 5] |= (1 << (code & 0x1F));
+			if (code == SDL_SCANCODE_ESCAPE)
 				quit();
 			break;
 		case SDL_KEYUP:
-			if (ev.key.keysym.sym < 256)
-				keystate[ev.key.keysym.sym] = 0;
+			code = ev.key.keysym.scancode;
+			keystate[code >> 5] &= ~(1 << (code & 0x1F));
 			break;
 		case SDL_QUIT:
 			quit();
