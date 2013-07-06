@@ -207,11 +207,13 @@ oops:
 	text.printf(0, 0, "rx: %8.4f", rx);
 	text.printf(0, 1, "ry: %8.4f", ry);
 	text.printf(0, 2, "zm: %8.4f", zoom);
-	text.printf(0, -1, "hello.cc");
+	text.printf(0, -1, "%d fps", fps);
 
+	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	text.render(this);
 	glDisable(GL_BLEND);
+	glEnable(GL_DEPTH_TEST);
 }
 
 App *createApp(void) {
