@@ -179,6 +179,7 @@ protected:
 
 	/* keys down */
 	unsigned keystate[16];
+	int fps;
 
 private:
 	int _vsync;

@@ -16,6 +16,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <time.h>
+
 #ifdef _WIN32
 #define GLUE_DEFINE_EXTENSIONS 1
 #endif
@@ -107,7 +109,10 @@ int App::start(void) {
 
 	win = SDL_CreateWindow("Application",
 		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-		width, height, SDL_WINDOW_OPENGL /* | SDL_WINDOW_RESIZABLE */);
+		width, height, SDL_WINDOW_OPENGL
+	       	// | SDL_WINDOW_RESIZABLE
+		// | SDL_WINDOW_FULLSCREEN
+		);
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
@@ -131,6 +136,11 @@ int App::start(void) {
 	if (init())
 		return -1;
 
+	time_t t0, t1;
+	unsigned count;
+	t0 = t1 = time(NULL);
+	count = 0;
+
 	for (;;) {
 		handleEvents();
 
@@ -145,6 +155,13 @@ int App::start(void) {
 			SDL_GL_SwapWindow(win);
 		} else {
 			glFlush();
+		}
+		count++;
+		t1 = time(NULL);
+		if (t0 != t1) {
+			fps = count;
+			count = 0;
+			t0 = t1;
 		}
 	}
 	return -1;
