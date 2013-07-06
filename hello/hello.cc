@@ -52,6 +52,7 @@ public:
 	void render(void);
 	void release(void);
 	void build(void);
+	void onKeyUp(unsigned code);
 
 private:
 	float t;
@@ -150,6 +151,16 @@ int TestApp::init(void) {
 
 static float rate = 90.0;
 
+void TestApp::onKeyUp(unsigned code) {
+	switch (code) {
+	case SDL_SCANCODE_P:
+		ps.load("simple.fragment");
+		vs.load("simple.vertex");
+		pgm.link(&vs, &ps);
+		break;
+	}
+}
+
 void TestApp::render(void) {
 	unsigned stride, offset;
 	int update = 0;
@@ -175,11 +186,6 @@ void TestApp::render(void) {
 	if (keydown(SDL_SCANCODE_D)) { nx += 0.01; update = 1; }
 	if (keydown(SDL_SCANCODE_W)) { ny -= 0.01; update = 1; }
 	if (keydown(SDL_SCANCODE_S)) { ny += 0.01; update = 1; }
-	if (keydown(SDL_SCANCODE_P)) {
-		ps.load("simple.fragment");
-		vs.load("simple.vertex");
-		pgm.link(&vs, &ps);
-	}
 oops:
 	if (update)
 		build();
