@@ -19,6 +19,8 @@
 #include "app.h"
 #include "util.h"
 
+#define ENABLE_SHADER_CACHE 0
+
 static void dump_compile_error(unsigned id) {
 	int len;
 	char *buf;
@@ -130,9 +132,11 @@ static struct source *load_shader_source(const char *fn) {
 		sprintf(buf, "%s.glsl", fn);
 	}
 
+#if ENABLE_SHADER_CACHE
 	for (src = source_cache; src; src = src->next)
 		if (!strcmp(buf, src->name))
 			return src;
+#endif
 
 	src = new source;
 	src->sections = NULL;
@@ -204,8 +208,11 @@ static struct source *load_shader_source(const char *fn) {
 #endif
 
 	src->name = strdup(buf);
+
+#if ENABLE_SHADER_CACHE
 	src->next = source_cache;
 	source_cache = src;
+#endif
 	return src;
 }
 
