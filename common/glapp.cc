@@ -59,10 +59,12 @@ void App::handleEvents(void) {
 			keystate[code >> 5] |= (1 << (code & 0x1F));
 			if (code == SDL_SCANCODE_ESCAPE)
 				quit();
+			onKeyDown(code);
 			break;
 		case SDL_KEYUP:
 			code = ev.key.keysym.scancode;
 			keystate[code >> 5] &= ~(1 << (code & 0x1F));
+			onKeyUp(code);
 			break;
 		case SDL_QUIT:
 			quit();

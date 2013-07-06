@@ -155,6 +155,8 @@ public:
 	virtual int init(void) = 0;
 	virtual void render(void) = 0;
 	virtual void release(void) {};
+	virtual void onKeyDown(unsigned code) {};
+	virtual void onKeyUp(unsigned code) {};
 
 	/* glue - do not use */
 	int start(void);
