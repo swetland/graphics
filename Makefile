@@ -30,8 +30,8 @@ HOST_CFLAGS += -Ifreetype-2.5.0.1/include
 HOST_LFLAGS := -static-libstdc++
 #HOST_LFLAGS += -Wl,-gc-sections
 
-GLLIB := /usr/lib/nvidia-experimental-310/libGL.so.310.14
-#GLLIB := -lGL
+#GLLIB := /usr/lib/nvidia-experimental-310/libGL.so.310.14
+GLLIB := -lGL
 HOST_LIBS := $(SDLLIBS) $(GLLIB) -lm -lpng
 
 include $(wildcard arch/*/config.mk)
