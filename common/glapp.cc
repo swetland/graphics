@@ -116,20 +116,22 @@ int App::start(void) {
 		// | SDL_WINDOW_FULLSCREEN
 		);
 
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-
-	glcontext = SDL_GL_CreateContext(win);
-
-#if FALLBACK_TO_GL32
-	if (!glcontext) {
-		fprintf(stderr, "oops?\n");
+	int minor = 3;
+	while (minor > 0) {
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, minor);
 		glcontext = SDL_GL_CreateContext(win);
-		/* query needed extensions, etc */
+		if (glcontext)
+			break;
+		minor--;
 	}
-#endif
+	if (!glcontext) {
+		fprintf(stderr,"cannot obtain OpenGL 3.1+ context\n");
+		exit(1);
+	} else {
+		fprintf(stderr,"using OpenGL 3.%d\n", minor);
+		/* todo: verify extension availability */
+	}
 
 	SDL_GL_SetSwapInterval(_vsync);
 
