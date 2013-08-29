@@ -136,16 +136,20 @@ void printmtx(float *m, const char *name) {
 }
 
 int error(const char *fmt, ...) {
-	char buf[128];
+	char buf[1024];
 	va_list ap;
 	va_start(ap, fmt);
 	vsnprintf(buf, sizeof(buf), fmt, ap);
 	va_end(ap);
-	buf[127] = 0;
+	buf[1023] = 0;
 #if defined(_WIN32) && !defined(_DEBUG)
 	MessageBox(NULL, buf, "Error", MB_OK);
 #else
-	printx("ERROR: %s\n", buf);
+	if (buf[0] && (buf[strlen(buf) - 1] == '\n')) {
+		printx("ERROR: %s", buf);
+	} else {
+		printx("ERROR: %s\n", buf);
+	}
 #endif
 	return -1;
 }
