@@ -19,31 +19,6 @@
 #include "app.h"
 #include "util.h"
 
-#if 1
-#define CHECK() do {} while (0)
-#else
-const char *__gl_error_string(unsigned e) {
-	static char buf[16];
-	switch (e) {
-	case GL_INVALID_ENUM: return "INVALID ENUM";
-	case GL_INVALID_VALUE: return "INVALID VALUE";
-	case GL_INVALID_OPERATION: return "INVALID OPERATION";
-	case GL_INVALID_FRAMEBUFFER_OPERATION: return "INVALID FRAMEBUFFER OPERATION";
-	case GL_OUT_OF_MEMORY: return "OUT OF MEMORY";
-	default:
-		sprintf(buf,"0x%08x", e);
-		return buf;
-	}
-}
-
-void __check_gl_error(const char *fn, int line) {
-	unsigned e;
-	while ((e = glGetError()) != GL_NO_ERROR)
-		printx("%s:%d: GL ERROR %s\n", fn, line, __gl_error_string(e));
-}
-#define CHECK()  __check_gl_error(__func__, __LINE__)
-#endif
-
 static unsigned vattr_type(unsigned type) {
 	switch (type) {
 	case SRC_INT8:   return GL_BYTE;
@@ -62,39 +37,31 @@ static unsigned vattr_type(unsigned type) {
 void VertexAttributes::init(VertexAttrDesc *desc, VertexBuffer **data, unsigned count) {
 	unsigned id = 0, n;
 	glGenVertexArrays(1, &vao);
-	CHECK();
 	glBindVertexArray(vao);
-	CHECK();
 	for (n = 0; n < count; n++) {
 		if (data && (data[n]->id != id)) {
 			id = data[n]->id;
 			glBindBuffer(GL_ARRAY_BUFFER, id);
-			CHECK();
 		}
 		switch (desc->dst_type) {
 		case DST_FLOAT:
 			glVertexAttribPointer(desc->index, desc->count,
 				vattr_type(desc->src_type), GL_FALSE, desc->stride,
 				OFF2PTR(desc->offset));
-			CHECK();
 			break;
 		case DST_NORMALIZED:
 			glVertexAttribPointer(desc->index, desc->count,
 				vattr_type(desc->src_type), GL_TRUE, desc->stride,
 				OFF2PTR(desc->offset));
-			CHECK();
 			break;
 		case DST_INTEGER:
 			glVertexAttribIPointer(desc->index, desc->count,
 				vattr_type(desc->src_type), desc->stride,
 				OFF2PTR(desc->offset));
-			CHECK();
 			break;
 		}
 		glVertexAttribDivisor(desc->index, desc->divisor);
-		CHECK();
 		glEnableVertexAttribArray(desc->index);
-		CHECK();
 		desc++;
 	}
 }

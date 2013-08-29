@@ -91,6 +91,46 @@ void App::setOptions(int argc, char **argv) {
 }
 #endif
 
+static const char *dbg_source(GLenum n) {
+	switch (n) {
+	case GL_DEBUG_SOURCE_API_ARB: return "api";
+	case GL_DEBUG_SOURCE_SHADER_COMPILER_ARB: return "compiler";
+	case GL_DEBUG_SOURCE_WINDOW_SYSTEM_ARB: return "winsys";
+	case GL_DEBUG_SOURCE_THIRD_PARTY_ARB: return "3rdpty";
+	case GL_DEBUG_SOURCE_APPLICATION_ARB: return "app";
+	case GL_DEBUG_SOURCE_OTHER_ARB: return "other";
+	default: return "unknown";
+	}
+}
+static const char *dbg_type(GLenum n) {
+	switch (n) {
+	case GL_DEBUG_TYPE_ERROR_ARB: return "error";
+	case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR_ARB: return "undef";
+	case GL_DEBUG_TYPE_PERFORMANCE_ARB: return "perf";
+	case GL_DEBUG_TYPE_PORTABILITY_ARB: return "portability";
+	case GL_DEBUG_TYPE_OTHER_ARB: return "other";
+	default: return "unknown";
+	}
+}
+static const char *dbg_severity(GLenum n) {
+	switch (n) {
+	case GL_DEBUG_SEVERITY_HIGH_ARB: return "high";
+	case GL_DEBUG_SEVERITY_MEDIUM_ARB: return "medium";
+	case GL_DEBUG_SEVERITY_LOW_ARB: return "low";
+	default: return "unknown";
+	}
+}
+static void dbg_error_callback(GLenum source, GLenum type, GLenum id, GLenum severity,
+	GLsizei length, const char *message, void *cookie) {
+#if VERBOSE
+	error("%s: %s: %x: %s: %s",
+		dbg_source(source), dbg_type(type), id,
+		dbg_severity(severity), message);
+#else
+	error("GL: %s", message);
+#endif
+}
+
 int App::start(void) {
 	memset(keystate, 0, sizeof(keystate));
 
@@ -131,6 +171,19 @@ int App::start(void) {
 	} else {
 		fprintf(stderr,"using OpenGL 3.%d\n", minor);
 		/* todo: verify extension availability */
+	}
+
+	{ // TODO: filter or disable in release mode
+		PFNGLDEBUGMESSAGECALLBACKPROC fn;
+		fn = (PFNGLDEBUGMESSAGECALLBACKPROC)
+			SDL_GL_GetProcAddress("glDebugMessageCallbackARB");
+		if (fn) {
+			fn(dbg_error_callback, NULL);
+			glEnable(GL_DEBUG_OUTPUT);
+			// glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+		} else {
+			fprintf(stderr,"warning: no glDebugMessageCallbackARB()\n");
+		}
 	}
 
 	SDL_GL_SetSwapInterval(_vsync);
