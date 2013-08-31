@@ -98,6 +98,7 @@ void __mat4_set_rotate_z(float m[16], float rad) {
 	m[15] = 1.0;
 }
 
+#if 0
 /* D3D RH Style */
 void __mat4_set_perspective(float m[16], float fov, float a, float zn, float zf) {
 	memset(m, 0, sizeof(float[16]));
@@ -109,6 +110,18 @@ void __mat4_set_perspective(float m[16], float fov, float a, float zn, float zf)
 	m[11] = -1.0;
 	m[14] = (zn * zf) / (zn - zf);
 }
+#else
+void __mat4_set_perspective(float m[16], float fov, float a, float zn, float zf) {
+	memset(m, 0, sizeof(float[16]));
+	float fn = 1.0f / (zf - zn);
+	float t = 1.0f / tanf(fov * 0.5f);
+	m[0] = (1.0f / a) * t;
+	m[5] = t;
+	m[10] = (-(zf - zn)) * fn;
+	m[11] = -1.0f;
+	m[14] = -2.0f * (zn * zf) * fn;
+}
+#endif
 
 void __mat4_set_ortho(float m[16], float l, float r, float b, float t, float n, float f) {
 	memset(m, 0, sizeof(float[16]));
