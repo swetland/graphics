@@ -57,7 +57,7 @@ $(OUT)/$(M_PATH)/$(M_NAME): _LIBS := $(M_LIBS)
 $(OUT)/$(M_PATH)/$(M_NAME): $(M_OBJS) $(M_LIBS) $(ASSETS)
 	@$(MKDIR)
 	@echo link $@
-	$(QUIET)g++ $(HOST_CFLAGS) -o $@ $(_OBJS) $(_LIBS) $(HOST_LIBS)
+	$(QUIET)g++ $(HOST_CFLAGS) $(HOST_LFLAGS) -o $@ $(_OBJS) $(_LIBS) $(HOST_LIBS)
 
 $(info module $(M_NAME))
 
