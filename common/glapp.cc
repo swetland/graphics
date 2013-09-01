@@ -186,6 +186,11 @@ int App::start(void) {
 		}
 	}
 
+	fprintf(stderr, "Vender: %s\n", glGetString(GL_VENDOR));
+	fprintf(stderr, "Renderer: %s\n", glGetString(GL_RENDERER));
+	fprintf(stderr, "GL Version: %s\n", glGetString(GL_VERSION));
+	fprintf(stderr, "GLSL Version: %s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
+
 	SDL_GL_SetSwapInterval(_vsync);
 
 	gl_map_functions();
