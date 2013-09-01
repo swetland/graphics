@@ -83,9 +83,11 @@ struct GeometryShader {
 
 struct Program {
 	unsigned id;
-	Program() : id(0) {};
+	unsigned bound;
+	Program() : id(0), bound(0) {};
 	~Program() { if (id) { glDeleteProgram(id); } };
-	void use(void) { glUseProgram(id); }
+	void use(void) { glUseProgram(id); if (!bound) bind(); }
+	void bind(void);
 	int link(VertexShader *vs, PixelShader *ps);
 	int link(VertexShader *vs, GeometryShader *gs, PixelShader *ps);
 	int load(const char *vsfn, const char *psfn);

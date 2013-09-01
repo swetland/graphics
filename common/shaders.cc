@@ -53,6 +53,13 @@ int Program::link(VertexShader *vs, PixelShader *ps) {
 	return link(vs, NULL, ps);
 }
 
+static const char *_blocknames[] = {
+	"block0", "block1", "block2", "block3",
+};
+static const char *_samplernames[] = {
+	"sampler0", "sampler1", "sampler2", "sampler3",
+};
+
 int Program::link(VertexShader *vs, GeometryShader *gs, PixelShader *ps) {
 	unsigned n;
 	int r;
@@ -71,7 +78,29 @@ int Program::link(VertexShader *vs, GeometryShader *gs, PixelShader *ps) {
 	if (id)
 		glDeleteProgram(id);
 	id = n;
-	return 0;
+
+	/* bind uniform block indices to bindpoints based on their name */
+	for (n = 0; n < sizeof(_blocknames) / sizeof(_blocknames[0]); n++) {
+		r = glGetUniformBlockIndex(id, _blocknames[n]);
+		if (r != GL_INVALID_INDEX) {
+			fprintf(stderr,"found %s @ %d\n", _blocknames[n], r);
+			glUniformBlockBinding(id, r, n);
+		}
+	}
+}
+
+/* defer final link steps until the first time glUseProgram() is called, */
+void Program::bind() {
+	unsigned n;
+	int r;
+	for (n = 0; n < sizeof(_samplernames) / sizeof(_samplernames[0]); n++) {
+		r = glGetUniformLocation(id, _samplernames[n]);
+		if (r != -1) {
+			fprintf(stderr,"found %s @ %d\n", _samplernames[0], r);
+			glUniform1i(r, n);
+		}
+	}
+	bound = 1;
 }
 
 int Program::load(const char *vsfn, const char *gsfn, const char *psfn) {
