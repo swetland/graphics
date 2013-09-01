@@ -105,6 +105,12 @@ int Texture2D::load(const char *fn, int options) {
 int Texture2D::load(void *data, unsigned w, unsigned h, int options) {
 	if (id == 0)
 		glGenTextures(1, &id);
+
+	/* GL 3.x guarantees at least 16 texture units.  We'll use */
+	/* unit 15 for load operations to avoid stepping on other  */
+	/* state that might be important. */
+	glActiveTexture(GL_TEXTURE0 + 15);
+
 	glBindTexture(GL_TEXTURE_2D, id);
 	if (options & OPT_TEX2D_GRAY)
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
