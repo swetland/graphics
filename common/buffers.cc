@@ -112,16 +112,25 @@ int Texture2D::load(void *data, unsigned w, unsigned h, int options) {
 	glActiveTexture(GL_TEXTURE0 + 15);
 
 	glBindTexture(GL_TEXTURE_2D, id);
-	if (options & OPT_TEX2D_GRAY)
+	if (!(options & OPT_TEX2D_GEN_MIPMAP)) {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+	}
+	if (options & OPT_TEX2D_GRAY) {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
 			GL_RED, GL_UNSIGNED_BYTE, data);
-	else
+	} else {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
 			GL_RGBA, GL_UNSIGNED_BYTE, data);
-	if (options & OPT_TEX2D_GEN_MIPMAP)
+	}
+	if (options & OPT_TEX2D_GEN_MIPMAP) {
 		glGenerateMipmap(GL_TEXTURE_2D);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	} else {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	}
 	width = w;
 	height = h;
 	return 0;
