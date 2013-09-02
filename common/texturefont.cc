@@ -89,6 +89,8 @@ fail:
 		free(header);
 		header = NULL;
 	}
+
+	return 0;
 }
 
 void TextureFont::clear(void) {
