@@ -3,14 +3,14 @@
 
 -- vertex
 
-layout(std140) uniform cb0 {
+layout(std140) uniform block0 {
 	mat4 MVP;
 	mat4 MV;
 };
 
-layout(location = 0) in vec4 POSITION;
-layout(location = 1) in vec4 NORMAL;
-layout(location = 2) in vec2 TEXCOORD;
+layout(location = A_POSITION) in vec4 POSITION;
+layout(location = A_NORMAL) in vec4 NORMAL;
+layout(location = A_TEXCOORD) in vec2 TEXCOORD;
 
 in vec4 LOCATION;
 

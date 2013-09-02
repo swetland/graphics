@@ -19,6 +19,9 @@
 #include "app.h"
 #include "util.h"
 
+#define INCLUDE_SHADER_GLOBALS 1
+#include "shared.h"
+
 #define ENABLE_SHADER_CACHE 0
 
 static void dump_compile_error(unsigned id) {
@@ -81,10 +84,10 @@ int Program::link(VertexShader *vs, GeometryShader *gs, PixelShader *ps) {
 
 	/* bind uniform block indices to bindpoints based on their name */
 	for (n = 0; n < sizeof(_blocknames) / sizeof(_blocknames[0]); n++) {
-		r = glGetUniformBlockIndex(id, _blocknames[n]);
-		if (r != GL_INVALID_INDEX) {
-			fprintf(stderr,"found %s @ %d\n", _blocknames[n], r);
-			glUniformBlockBinding(id, r, n);
+		unsigned idx = glGetUniformBlockIndex(id, _blocknames[n]);
+		if (idx != GL_INVALID_INDEX) {
+			fprintf(stderr,"found %s @ %d\n", _blocknames[n], idx);
+			glUniformBlockBinding(id, idx, n);
 		}
 	}
 
@@ -145,7 +148,9 @@ struct source {
 	unsigned len;
 };
 
+#if ENABLE_SHADER_CACHE
 static source *source_cache = NULL;
+#endif
 
 static struct source *load_shader_source(const char *fn) {
 	source *src;
@@ -249,8 +254,8 @@ static struct source *load_shader_source(const char *fn) {
 
 static int compile_shader_source(source *src, const char *name, unsigned id) {
 	char misc[128];
-	const char *data[3];
-	int size[3];
+	const char *data[4];
+	int size[4];
 	section *part;
 
 	for (part = src->sections; part; part = part->next) {
@@ -260,15 +265,13 @@ static int compile_shader_source(source *src, const char *name, unsigned id) {
 			sprintf(misc, "#line %d\n", part->lineno - 1);
 			data[0] = src->common.str;
 			size[0] = src->common.len;
-			data[1] = misc;
-			size[1] = strlen(misc);
-			data[2] = part->str;
-			size[2] = part->len;
-#if 0
-			printf("----------------\n%s%s%s\n-------------\n",
-				data[0], data[1], data[2]);
-#endif
-			glShaderSource(id, 3, data, size);
+			data[1] = shader_globals;
+			size[1] = strlen(shader_globals);
+			data[2] = misc;
+			size[2] = strlen(misc);
+			data[3] = part->str;
+			size[3] = part->len;
+			glShaderSource(id, 4, data, size);
 			return 0;
 		}
 	}
