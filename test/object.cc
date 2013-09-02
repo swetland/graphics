@@ -13,19 +13,11 @@
  * limitations under the License.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "app.h"
 #include "matrix.h"
-#include "util.h"
 
-// idx, src, dst, count, offset, stride, divisor
-static VertexAttrDesc layout[] = {
-	{ 0, SRC_FLOAT, DST_FLOAT, 3,  0, 32, 0 },
-	{ 1, SRC_FLOAT, DST_FLOAT, 3, 12, 32, 0 },
-	{ 2, SRC_FLOAT, DST_FLOAT, 2, 24, 32, 0 },
-};
+#include "Model.h"
+#include "Effect.h"
 
 class TestApp : public App {
 public:
@@ -38,16 +30,11 @@ public:
 private:
 	float r;
 
-	PixelShader ps;
-	VertexShader vs;
-	Program pgm;
-	IndexBuffer ibuf;
-	VertexBuffer vbuf;
-	UniformBuffer ubuf;
-	VertexAttributes attr;
+	Model *m;
+	Effect *e;
 
+	UniformBuffer ubuf;
 	mat4 proj;
-	struct model *m;
 };
 
 TestApp::TestApp() : App(), r(0.0) {
@@ -57,29 +44,13 @@ void TestApp::release(void) {
 }
 
 int TestApp::init(void) {
-	VertexBuffer *data[] = {
-		&vbuf, &vbuf, &vbuf,
-	};
+	if (!(m = Model::load("cube")))
+		return error("cannot load cube object");
 
-	if (!(m = load_wavefront_obj("unitcubeoid.obj")))
-		return error("cannot load model");
-	printx("Object Loaded. %d vertices, %d indices.\n", m->vcount, m->icount);
-
+	if (!(e = Effect::load("simple")))
+		return error("could not load simple effect");
+		
 	proj.setPerspective(D2R(90.0), width / (float) height, 0.1f, 250.0f);
-
-	ps.load("simple.fragment");
-	vs.load("simple.vertex");
-	pgm.link(&vs, &ps);
-
-	vbuf.load(m->vdata, 32 * m->vcount);
-	ibuf.load(m->idx, 2 * m->icount);
-	ubuf.load(NULL, 32 * 4);
-
-	attr.init(layout, data, sizeof(layout)/sizeof(layout[0]));
-
-	/* this will persist because it is part of the VAO state */
-	ibuf.use();
-
 	return 0;
 }
 
@@ -100,11 +71,10 @@ void TestApp::render(void) {
 	cb0.mv = world * view;
 
 	ubuf.load(&cb0, 32 * 4);
-
-	pgm.use();
 	ubuf.use(0);
-	attr.use();
-	glDrawElements(GL_TRIANGLES, m->icount, GL_UNSIGNED_SHORT, NULL);
+
+	e->apply();
+	m->render();
 }
 
 App *createApp(void) {

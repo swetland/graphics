@@ -1,9 +1,11 @@
 #version 140
 #extension GL_ARB_explicit_attrib_location : enable
 
+#define TEXTURED 1 
+
 -- vertex
 
-layout(std140) uniform cb0 {
+layout(std140) uniform block0 {
         mat4 MVP;
         mat4 MV;
 };
@@ -14,6 +16,7 @@ layout (location = 2) in vec2 TEXCOORD;
 
 out vec2 vTEXCOORD;
 out float vDIFFUSE;
+out vec4 vCOLOR;
 
 void main() {
         vec4 pos = POSITION;
@@ -34,8 +37,14 @@ void main() {
 in vec2 vTEXCOORD;
 in float vDIFFUSE;
 
+uniform sampler2D sampler0;
+
 void main() {
+#if TEXTURED
+	gl_FragColor = texture2D(sampler0, vTEXCOORD);
+#else
         vec4 c = vec4(1.0, 0.0, 0.0, 1.0);
         gl_FragColor = c * 0.25 + c * vDIFFUSE;
+#endif
 }
 
