@@ -178,5 +178,10 @@ struct model *load_wavefront_obj(const char *fn) {
 	m = obj_to_model(o);
 	delete o;
 	return m;
-} 
+}
 
+void delete_wavefront_obj(struct model *m) {
+	free(m->vdata);
+	free(m->idx);
+	free(m);
+} 

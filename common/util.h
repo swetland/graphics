@@ -16,13 +16,7 @@
 #ifndef _UTIL_H_
 #define _UTIL_H_
 
-/* basic datatypes */
-typedef unsigned int u32;
-typedef int s32;
-typedef unsigned short u16;
-typedef short s16;
-typedef unsigned char u8;
-typedef signed char s8;
+#include "types.h"
 
 /* file io helpers */
 #define OPT_PNG_INVERTY 0x0001
@@ -49,6 +43,7 @@ struct model {
 };
 
 struct model *load_wavefront_obj(const char *fn);
+void delete_wavefront_obj(struct model *m);
 
 /* simplex noise */
 float snoise(float x);
