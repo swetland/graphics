@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Express 2012 for Windows Desktop
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zlib-1.2.7", "zlib-1.2.7\zlib-1.2.7.vcxproj", "{9A238D95-47DB-4254-A680-F100AA9E755C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zlib-1.2.7", "thirdparty\zlib-1.2.7\zlib-1.2.7.vcxproj", "{9A238D95-47DB-4254-A680-F100AA9E755C}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpng-1.2.50", "libpng-1.2.50\libpng-1.2.50.vcxproj", "{F5A10B0A-0EC0-4A76-B4DD-748CA4047E50}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpng-1.2.50", "thirdparty\libpng-1.2.50\libpng-1.2.50.vcxproj", "{F5A10B0A-0EC0-4A76-B4DD-748CA4047E50}"
 	ProjectSection(ProjectDependencies) = postProject
 		{9A238D95-47DB-4254-A680-F100AA9E755C} = {9A238D95-47DB-4254-A680-F100AA9E755C}
 	EndProjectSection
@@ -28,7 +28,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test", "test\test.vcxproj",
 		{9A238D95-47DB-4254-A680-F100AA9E755C} = {9A238D95-47DB-4254-A680-F100AA9E755C}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "freetype-2.5.0.1", "freetype-2.5.0.1\freetype-2.5.0.1.vcxproj", "{17B3EF31-493C-4EE2-A706-6874C45FD7A6}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "freetype-2.5.0.1", "thirdparty\freetype-2.5.0.1\freetype-2.5.0.1.vcxproj", "{17B3EF31-493C-4EE2-A706-6874C45FD7A6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
