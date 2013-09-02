@@ -87,6 +87,8 @@ int Program::link(VertexShader *vs, GeometryShader *gs, PixelShader *ps) {
 			glUniformBlockBinding(id, r, n);
 		}
 	}
+
+	return 0;
 }
 
 /* defer final link steps until the first time glUseProgram() is called, */
