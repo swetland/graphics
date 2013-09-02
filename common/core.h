@@ -16,18 +16,9 @@
 #ifndef _CORE_H_
 #define _CORE_H_
 
-#ifdef _WIN32
-#define NO_SDL_GLEXT 1
+//#define NO_SDL_GLEXT 1
 #include <SDL.h>
-#include <SDL_opengl.h>
 #include "opengl.h"
-#else
-#define GL_GLEXT_PROTOTYPES 1
-#define NO_SDL_GLEXT 1
-#include <SDL.h>
-#include <SDL_opengl.h>
-#include "glcorearb.h"
-#endif
 
 #include <math.h>
 

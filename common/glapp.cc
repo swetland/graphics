@@ -15,17 +15,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
 #include <time.h>
 
-#ifdef _WIN32
-#define GLUE_DEFINE_EXTENSIONS 1
-#endif
+/* flag opengl.h to include the extension table */
+#define GLXTN
 
 #include "app.h"
 #include "util.h"
 
-#ifdef _WIN32
 static void gl_map_functions(void) {
 	int n;
 	if (!SDL_GL_ExtensionSupported("GL_ARB_shader_objects") ||
@@ -39,9 +36,6 @@ static void gl_map_functions(void) {
 			die("cannot find func '%s'", fntb[n].name);
 	}
 }
-#else
-void gl_map_functions(void) {}
-#endif
 
 static void quit(void) {
 	SDL_Quit();
@@ -219,6 +213,8 @@ int App::start(void) {
 		/* todo: verify extension availability */
 	}
 
+	gl_map_functions();
+
 	{ // TODO: filter or disable in release mode
 		PFNGLDEBUGMESSAGECALLBACKPROC fn;
 		fn = (PFNGLDEBUGMESSAGECALLBACKPROC)
@@ -240,7 +236,6 @@ int App::start(void) {
 	dump_gl_params();
 
 	SDL_GL_SetSwapInterval(_vsync);
-	gl_map_functions();
 
 	if (init())
 		return -1;

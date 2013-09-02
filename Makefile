@@ -20,7 +20,7 @@ SDLCFG := /work/sdl2/bin/sdl2-config
 
 SDLFLAGS := $(shell $(SDLCFG) --cflags)
 #SDLLIBS := $(shell $(SDLCFG) --static-libs)
-SDLLIBS := /work/sdl2/lib/libSDL2.a -lpthread -lrt
+SDLLIBS := /work/sdl2/lib/libSDL2.a -lpthread -lrt -ldl
 
 HOST_CFLAGS := $(SDLFLAGS) -Wall -g -O2
 HOST_CFLAGS += -std=c++0x
@@ -32,9 +32,7 @@ HOST_LFLAGS := -static-libstdc++
 #HOST_LFLAGS += -Wl,--verbose
 #HOST_LFLAGS += -Wl,-gc-sections
 
-#GLLIB := /usr/lib/nvidia-experimental-310/libGL.so.310.14
-GLLIB := -L/usr/lib -lGL
-HOST_LIBS := $(SDLLIBS) $(GLLIB) -lm -lpng
+HOST_LIBS := $(SDLLIBS) -lm -lpng
 
 include $(wildcard arch/*/config.mk)
 
