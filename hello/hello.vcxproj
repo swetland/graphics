@@ -39,12 +39,12 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>..\libpng-1.2.50;..\zlib-1.2.7;$(IncludePath)</IncludePath>
+    <IncludePath>..\thirdparty\libpng-1.2.50;..\thirdparty\zlib-1.2.7;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)_$(Configuration)\$(ProjectName)\</OutDir>
     <IntDir>_$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>..\libpng-1.2.50;..\zlib-1.2.7;$(IncludePath)</IncludePath>
+    <IncludePath>..\thirdparty\libpng-1.2.50;..\thirdparty\zlib-1.2.7;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)_$(Configuration)\$(ProjectName)\</OutDir>
     <IntDir>_$(Configuration)\</IntDir>
   </PropertyGroup>
