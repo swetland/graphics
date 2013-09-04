@@ -15,10 +15,10 @@ out vec3 vPosition; // eye space
 out vec3 vNormal; // eye space
 
 void main() {
-	vPosition = (OBJ.MV * aPosition).xyz;
-	vNormal = (OBJ.MV * vec4(aNormal, 0.0)).xyz;
+	vPosition = (uMV * aPosition).xyz;
+	vNormal = (uMV * vec4(aNormal, 0.0)).xyz;
 	vTexCoord = aTexCoord;
-        gl_Position = OBJ.MVP * aPosition;
+        gl_Position = uMVP * aPosition;
 }
 
 -- fragment
@@ -37,20 +37,20 @@ void main() {
 #endif
 	vec3 n = normalize(vNormal);
 	vec3 s;
-	if (SCN.LightPosition.w > 0) {
+	if (uLightPosition.w > 0) {
 		/* positional light, compute direction */
-		s = normalize(SCN.LightPosition.xyz - vPosition);
+		s = normalize(uLightPosition.xyz - vPosition);
 	} else {
 		/* directional light - light position is actually a vector */
-		s = SCN.LightPosition.xyz;
+		s = uLightPosition.xyz;
 	}
 	vec3 v = normalize(-vPosition);
 	vec3 h = normalize(v + s);
 
-	gl_FragColor = MAT.Ambient * c
-		+ MAT.Diffuse * c * max( dot(s, n), 0.0) 
+	gl_FragColor = uAmbient * c
+		+ uDiffuse * c * max( dot(s, n), 0.0) 
 #ifdef SPECULAR
-		+ MAT.Specular * SCN.LightColor * pow( max( dot(h,n), 0.0), MAT.Shininess)
+		+ uSpecular * uLightColor * pow( max( dot(h,n), 0.0), uShininess)
 #endif
 		;
 }

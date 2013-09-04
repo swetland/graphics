@@ -6,7 +6,7 @@
 layout (location = A_POSITION) in vec4 aPosition;
 
 void main() {
-	gl_Position = OBJ.MVP * aPosition;
+	gl_Position = uMVP * aPosition;
 }
 
 -- fragment
