@@ -25,11 +25,6 @@
 
 static void gl_map_functions(void) {
 	int n;
-	if (!SDL_GL_ExtensionSupported("GL_ARB_shader_objects") ||
-		!SDL_GL_ExtensionSupported("GL_ARB_shading_language_100") ||
-		!SDL_GL_ExtensionSupported("GL_ARB_vertex_shader") ||
-		!SDL_GL_ExtensionSupported("GL_ARB_fragment_shader"))
-		die("missing glsl extensions");
 	for (n = 0; n < sizeof(fntb)/sizeof(fntb[0]); n++) {
 		*fntb[n].func = SDL_GL_GetProcAddress(fntb[n].name);
 		if (!(*fntb[n].func))
