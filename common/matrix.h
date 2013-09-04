@@ -16,6 +16,7 @@
 #ifndef _MATRIX_MATH_H_
 #define _MATRIX_MATH_H_
 
+#include <math.h>
 #include <string.h>
 
 #define D2R(d) (((d) * M_PI) / 180.0)
@@ -39,34 +40,40 @@ void __mat4_set_ortho(float m[16], float left, float right,
 class mat4;
 
 class vec4 {
-	float v[4];
+	union {
+		float v[4];
+		struct {
+			float x, y, z, w;
+		};
+	};
 public:
 	vec4() { };
-	vec4(const vec4 &x) {
-		v[0] = x[0]; v[1] = x[1]; v[2] = x[2]; v[3] = x[3];
+	vec4(const vec4 &v) {
+		x = v.x; y = v.y; z = v.z; w = v.z;
 	};
 	vec4(const float *raw) {
 		memcpy(v, raw, sizeof(float[4]));
 	}
 	vec4(float a, float b, float c, float d) {
-		v[0] = a; v[1] = b; v[2] = c; v[3] = d;
+		x = a; y = b; z = c; w = d;
 	};
-	vec4(float x, float y, float z) {
-		v[0] = x; v[1] = y; v[2] = z; v[3] = 1.0;
+	vec4(float a, float b, float c) {
+		x = a; y = b; z = c; w = 1.0f;
 	};
-
-	void set(float a, float b, float c, float d) {
-		v[0] = a; v[1] = b; v[2] = c; v[3] = d;
+	vec4& set(float a, float b, float c, float d) {
+		x = a; y = b; z = c; w = d;
+		return *this;
 	}
-	void set(float a, float b, float c) {
-		v[0] = a; v[1] = b; v[2] = c; v[3] = 1.0;
+	vec4& set(float a, float b, float c) {
+		x = a; y = b; z = c; w = 1.0f;
+		return *this;
 	}
 
 	/* raw accessor suitable for glSomething4fv() */
 	operator const float*() { return v; };
 
 	vec4& operator*=(float n) {
-		v[0]*=n; v[1]*=n; v[2]*=n; v[3]*=n;
+		x *= n; y *= n; z *= n; w *= n;
 		return *this;
 	}
 
@@ -82,43 +89,55 @@ public:
 	friend vec4 operator-(const vec4& a, const vec4& b);
 
 	friend vec4 operator*(const mat4& a, const vec4& b);
+
+	float length(void) {
+		return sqrtf(x*x + y*y + z*z + w*w);
+	}
+	float dot(const vec4& v) {
+		return x*v.x + y*v.y + z*v.z + w*v.w;
+	}
 };
 
-inline vec4 operator*(const vec4& a, const float n) {
-	return vec4(a.v[0]*n,a.v[1]*n,a.v[2]*n,a.v[3]*n);
+inline vec4 operator*(const vec4& v, const float n) {
+	return vec4(v.x * n, v.y * n, v.z * n, v.w * n);
 }
-inline vec4 operator/(const vec4& a, const float n) {
-	return vec4(a.v[0]/n,a.v[1]/n,a.v[2]/n,a.v[3]/n);
+inline vec4 operator/(const vec4& v, const float n) {
+	return vec4(v.x / n, v.y / n, v.z / n, v.w / n);
 }
 inline vec4 operator+(const vec4& a, const vec4& b) {
-	return vec4(a[0]+b[0],a[1]+b[1],a[2]+b[2],a[3]+b[3]);
+	return vec4(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w);
 }
 inline vec4 operator-(const vec4& a, const vec4& b) {
-	return vec4(a[0]-b[0],a[1]-b[1],a[2]-b[2],a[3]-b[3]);
+	return vec4(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w);
 }
 
 class vec3 {
-	float v[3];
+	union {
+		float v[3];
+		struct {
+			float x, y, z;
+		};
+	};
 public:
 	vec3() { };
-	vec3(const vec3 &x) {
-		v[0] = x[0]; v[1] = x[1]; v[2] = x[2];
+	vec3(const vec3 &v) {
+		x = v.x; y = v.y; z = v.z;
 	};
 	vec3(const float *raw) {
-		memcpy(v, raw, sizeof(float[4]));
+		memcpy(v, raw, sizeof(float[3]));
 	}
 	vec3(float a, float b, float c) {
-		v[0] = a; v[1] = b; v[2] = c;
+		x = a; y = b; z = c;
 	};
 	void set(float a, float b, float c) {
-		v[0] = a; v[1] = b; v[2] = c;
+		x = a; y = b; z = c;
 	}
 
 	/* raw accessor suitable for glSomething4fv() */
 	operator const float*() { return v; };
 
 	vec3& operator*=(float n) {
-		v[0]*=n; v[1]*=n; v[2]*=n;
+		x *= n; y *= n; z *= n;
 		return *this;
 	}
 
@@ -132,19 +151,26 @@ public:
 	friend vec3 operator/(const vec3& a, const float b);
 	friend vec3 operator+(const vec3& a, const vec3& b);
 	friend vec3 operator-(const vec3& a, const vec3& b);
+
+	float length(void) {
+		return sqrtf(x*x + y*y + z*z);
+	}
+	float dot(const vec4& v) {
+		return x*v.x + y*v.y + z*v.z;
+	}
 };
 
-inline vec3 operator*(const vec3& a, const float n) {
-	return vec3(a.v[0]*n,a.v[1]*n,a.v[2]*n);
+inline vec3 operator*(const vec3& v, const float n) {
+	return vec3(v.x * n, v.y * n, v.z * n);
 }
-inline vec3 operator/(const vec3& a, const float n) {
-	return vec3(a.v[0]/n,a.v[1]/n,a.v[2]/n);
+inline vec3 operator/(const vec3& v, const float n) {
+	return vec3(v.x / n, v.y / n, v.z / n);
 }
 inline vec3 operator+(const vec3& a, const vec3& b) {
-	return vec3(a[0]+b[0],a[1]+b[1],a[2]+b[2]);
+	return vec3(a.x + b.x, a.y + b.y, a.z + b.z);
 }
 inline vec3 operator-(const vec3& a, const vec3& b) {
-	return vec3(a[0]-b[0],a[1]-b[1],a[2]-b[2]);
+	return vec3(a.x - b.x, a.y - b.y, a.z - b.z);
 }
 
 
