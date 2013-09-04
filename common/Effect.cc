@@ -15,7 +15,6 @@
 
 #include <string>
 
-#include "util.h"
 #include "Effect.h"
 
 void Effect::apply(void) {
@@ -45,7 +44,6 @@ int Effect::init(const char *name) {
 				break;
 			}
 		}
-		printx("EXTRAS---\n%s",defines.c_str());
 		if (vs.load(vname.c_str(), defines.c_str()))
 			return -1;
 		if (ps.load(fname.c_str(), defines.c_str()))
