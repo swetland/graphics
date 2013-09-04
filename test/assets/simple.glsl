@@ -1,50 +1,57 @@
 #version 140
 #extension GL_ARB_explicit_attrib_location : enable
 
-#define TEXTURED 1 
+//#define TEXTURED
+//#define SPECULAR
 
 -- vertex
 
-layout(std140) uniform block0 {
-        mat4 MVP;
-        mat4 MV;
-};
+layout (location = A_POSITION) in vec4 aPosition;
+layout (location = A_NORMAL) in vec3 aNormal;
+layout (location = A_TEXCOORD) in vec2 aTexCoord;
 
-layout (location = A_POSITION) in vec4 POSITION;
-layout (location = A_NORMAL) in vec4 NORMAL;
-layout (location = A_TEXCOORD) in vec2 TEXCOORD;
-
-out vec2 vTEXCOORD;
-out float vDIFFUSE;
-out vec4 vCOLOR;
+out vec2 vTexCoord;
+out vec3 vPosition; // eye space
+out vec3 vNormal; // eye space
 
 void main() {
-        vec4 pos = POSITION;
-
-        vec3 mvPosition = (MV * pos).xyz;
-        vec3 mvNormal = (MV * vec4(NORMAL.xyz,0.0)).xyz;
-
-        vec3 lightVec = normalize(vec3(10,20,25) - mvPosition);
-        float diffuse = max(dot(mvNormal, lightVec), 0.0);
-
-        gl_Position = MVP * POSITION;
-        vTEXCOORD = TEXCOORD;
-        vDIFFUSE = diffuse;
+	vPosition = (OBJ.MV * aPosition).xyz;
+	vNormal = (OBJ.MV * vec4(aNormal, 0.0)).xyz;
+	vTexCoord = aTexCoord;
+        gl_Position = OBJ.MVP * aPosition;
 }
 
 -- fragment
 
-in vec2 vTEXCOORD;
-in float vDIFFUSE;
+in vec2 vTexCoord;
+in vec3 vPosition;
+in vec3 vNormal;
 
 uniform sampler2D sampler0;
 
 void main() {
-#if TEXTURED
-	gl_FragColor = texture2D(sampler0, vTEXCOORD);
+#ifdef TEXTURED
+	vec4 c = texture2D(sampler0, vTexCoord);
 #else
         vec4 c = vec4(1.0, 0.0, 0.0, 1.0);
-        gl_FragColor = c * 0.25 + c * vDIFFUSE;
 #endif
+	vec3 n = normalize(vNormal);
+	vec3 s;
+	if (SCN.LightPosition.w > 0) {
+		/* positional light, compute direction */
+		s = normalize(SCN.LightPosition.xyz - vPosition);
+	} else {
+		/* directional light - light position is actually a vector */
+		s = SCN.LightPosition.xyz;
+	}
+	vec3 v = normalize(-vPosition);
+	vec3 h = normalize(v + s);
+
+	gl_FragColor = MAT.Ambient * c
+		+ MAT.Diffuse * c * max( dot(s, n), 0.0) 
+#ifdef SPECULAR
+		+ MAT.Specular * SCN.LightColor * pow( max( dot(h,n), 0.0), MAT.Shininess)
+#endif
+		;
 }
 

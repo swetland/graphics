@@ -104,7 +104,7 @@ void TextGrid::render(App *a) {
 	}
 	pgm.use();
 	attr.use();
-	ubuf.use(0);
+	ubuf.use(3);
 	texture.use(0);
 	glDrawArraysInstanced(GL_TRIANGLES, 0, 6, width * height);
 }

@@ -18,6 +18,7 @@
 
 #include "app.h"
 #include "util.h"
+#include "matrix.h"
 
 #define INCLUDE_SHADER_GLOBALS 1
 #include "shared.h"

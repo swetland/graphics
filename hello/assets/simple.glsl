@@ -3,7 +3,7 @@
 
 -- vertex
 
-layout(std140) uniform block0 {
+layout(std140) uniform block3 {
 	mat4 MVP;
 	mat4 MV;
 };

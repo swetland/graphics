@@ -205,7 +205,7 @@ oops:
 
 	pgm.use();
 	ubuf.load(&cb0, sizeof(cb0));
-	ubuf.use(0);
+	ubuf.use(3);
 	attr.use();
 	glDrawElementsInstanced(GL_TRIANGLES, m->icount, GL_UNSIGNED_SHORT, NULL, lcount);
 

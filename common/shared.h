@@ -23,11 +23,50 @@
 #define A_NORMAL	1
 #define A_TEXCOORD	2
 
+#define U_SCENE		0
+#define U_OBJECT	1
+#define U_MATERIAL	2
+
+struct ubScene {
+	mat4 Ortho;		/* 1:1 2D mapping */
+	vec4 OrthoSize;		/* x,y = width,height */
+	vec4 LightColor;
+	vec4 LightPosition;
+};
+
+struct ubObject {
+	mat4 mvp;
+	mat4 mv;
+};
+
+struct ubMaterial {
+	vec4 Ambient;
+	vec4 Diffuse;
+	vec4 Specular;
+	float Shininess;
+};
+
 #if INCLUDE_SHADER_GLOBALS
 static const char *shader_globals = 
 "#define A_POSITION 0\n"
 "#define A_NORMAL 1\n"
 "#define A_TEXCOORD 2\n"
+"layout(std140) uniform block0 {\n"
+"	mat4 Ortho;\n"
+"	vec4 OrthoSize;\n"
+"	vec4 LightColor;\n"
+"	vec4 LightPosition;\n"
+"} SCN;\n"
+"layout(std140) uniform block1 {\n"
+"	mat4 MVP;\n"
+"	mat4 MV;\n"
+"} OBJ;\n"
+"layout(std140) uniform block2 {\n"
+"	vec4 Ambient;\n"
+"	vec4 Diffuse;\n"
+"	vec4 Specular;\n"
+"	float Shininess;\n"
+"} MAT;\n"
 ;
 #endif
 
