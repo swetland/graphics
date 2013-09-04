@@ -55,21 +55,21 @@ struct VertexShader {
 	unsigned id;
 	VertexShader() : id(0) {};
 	~VertexShader() { if (id) { glDeleteShader(id); } };
-	int load(const char *fn);
+	int load(const char *fn, const char *defines = "");
 };
 
 struct PixelShader {
 	unsigned id;
 	PixelShader() : id(0) {};
 	~PixelShader() { if (id) glDeleteShader(id); };
-	int load(const char *fn);
+	int load(const char *fn, const char *defines = "");
 };
 
 struct GeometryShader {
 	unsigned id;
 	GeometryShader() : id(0) {};
 	~GeometryShader() { if (id) glDeleteShader(id); };
-	int load(const char *fn);
+	int load(const char *fn, const char *defines = "");
 };
 
 struct Program {

@@ -15,6 +15,7 @@
 
 #include <string>
 
+#include "util.h"
 #include "Effect.h"
 
 void Effect::apply(void) {
@@ -22,14 +23,43 @@ void Effect::apply(void) {
 }
 
 int Effect::init(const char *name) {
-	std::string vname(name);
-	std::string fname(name);
-	vname.append(".vertex");
-	fname.append(".fragment");
-	if (vs.load(vname.c_str()))
-		return -1;
-	if (ps.load(fname.c_str()))
-		return -1;
+	const char *x = strchr(name, '+');
+	if (x) {
+		std::string vname(name, x - name);
+		std::string fname(name, x - name);
+		vname.append(".vertex");
+		fname.append(".fragment");
+		x++;
+		std::string defines;
+		while (*x) {
+			const char *n = x;
+			x = strchr(n, '+');
+			defines.append("#define ");
+			if (x) {
+				defines.append(n, x-n);
+				defines.append("\n");
+				x++;
+			} else {
+				defines.append(n);
+				defines.append("\n");
+				break;
+			}
+		}
+		printx("EXTRAS---\n%s",defines.c_str());
+		if (vs.load(vname.c_str(), defines.c_str()))
+			return -1;
+		if (ps.load(fname.c_str(), defines.c_str()))
+			return -1;
+	} else {
+		std::string vname(name);
+		std::string fname(name);
+		vname.append(".vertex");
+		fname.append(".fragment");
+		if (vs.load(vname.c_str()))
+			return -1;
+		if (ps.load(fname.c_str()))
+			return -1;
+	}
 	if (pgm.link(&vs, &ps))
 		return -1;
 	return 0;

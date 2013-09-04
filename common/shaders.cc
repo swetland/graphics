@@ -252,10 +252,10 @@ static struct source *load_shader_source(const char *fn) {
 	return src;
 }
 
-static int compile_shader_source(source *src, const char *name, unsigned id) {
+static int compile_shader_source(source *src, const char *name, const char *defines, unsigned id) {
 	char misc[128];
-	const char *data[4];
-	int size[4];
+	const char *data[5];
+	int size[5];
 	section *part;
 
 	for (part = src->sections; part; part = part->next) {
@@ -267,18 +267,20 @@ static int compile_shader_source(source *src, const char *name, unsigned id) {
 			size[0] = src->common.len;
 			data[1] = shader_globals;
 			size[1] = strlen(shader_globals);
-			data[2] = misc;
-			size[2] = strlen(misc);
-			data[3] = part->str;
-			size[3] = part->len;
-			glShaderSource(id, 4, data, size);
+			data[2] = defines;
+			size[2] = strlen(defines);
+			data[3] = misc;
+			size[3] = strlen(misc);
+			data[4] = part->str;
+			size[4] = part->len;
+			glShaderSource(id, 5, data, size);
 			return 0;
 		}
 	}
 	return error("cannot find section '%s'", name);
 }
 
-static int _load_shader(unsigned *out, const char *fn, unsigned type) {
+static int _load_shader(unsigned *out, const char *fn, const char *defines, unsigned type) {
 	unsigned id;
 	source *src;
 	const char *x;
@@ -294,7 +296,7 @@ static int _load_shader(unsigned *out, const char *fn, unsigned type) {
 		return error("cannot load shader source '%s'", fn);
 
 	id = glCreateShader(type);
-	if (compile_shader_source(src, x, id)) {
+	if (compile_shader_source(src, x, defines, id)) {
 		glDeleteShader(id);
 		return -1;
 	}
@@ -311,15 +313,15 @@ static int _load_shader(unsigned *out, const char *fn, unsigned type) {
 	return 0;
 }
 
-int VertexShader::load(const char *fn) {
-	return _load_shader(&id, fn, GL_VERTEX_SHADER);
+int VertexShader::load(const char *fn, const char *defines) {
+	return _load_shader(&id, fn, defines, GL_VERTEX_SHADER);
 }
 
-int PixelShader::load(const char *fn) {
-	return _load_shader(&id, fn, GL_FRAGMENT_SHADER);
+int PixelShader::load(const char *fn, const char *defines) {
+	return _load_shader(&id, fn, defines, GL_FRAGMENT_SHADER);
 }
 
-int GeometryShader::load(const char *fn) {
-	return _load_shader(&id, fn, GL_GEOMETRY_SHADER);
+int GeometryShader::load(const char *fn, const char *defines) {
+	return _load_shader(&id, fn, defines, GL_GEOMETRY_SHADER);
 }
 
