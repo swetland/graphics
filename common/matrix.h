@@ -96,6 +96,11 @@ public:
 	float dot(const vec4& v) {
 		return x*v.x + y*v.y + z*v.z + w*v.w;
 	}
+	vec4& normalize(void) {
+		float n = 1.0f / length();
+		x *= n; y *= n; z *= n; w *= n;
+		return *this;
+	}
 };
 
 inline vec4 operator*(const vec4& v, const float n) {
@@ -158,6 +163,11 @@ public:
 	float dot(const vec4& v) {
 		return x*v.x + y*v.y + z*v.z;
 	}
+	vec3& normalize(void) {
+		float n = 1.0f / length();
+		x *= n; y *= n; z *= n;
+		return *this;
+	}
 };
 
 inline vec3 operator*(const vec3& v, const float n) {
@@ -172,7 +182,9 @@ inline vec3 operator+(const vec3& a, const vec3& b) {
 inline vec3 operator-(const vec3& a, const vec3& b) {
 	return vec3(a.x - b.x, a.y - b.y, a.z - b.z);
 }
-
+inline vec3 cross(const vec3& p, const vec3& q) {
+	return vec3(p.y*q.z-p.z*q.y, p.z*q.x-p.x*q.z, p.x*q.y-p.y*q.x);
+}
 
 class mat4 {
 	float m[16];
@@ -244,7 +256,14 @@ public:
 		__mat4_set_perspective(m, fov, aspect, znear, zfar);
 		return *this;
 	};
-
+	mat4& lookAt(const vec3& eye, const vec3& center, const vec3& up); 
+	mat4& camera(const vec3& eye, const vec3& center, const vec3& up) {
+		lookAt(eye, center, up);
+		m[12] = -eye.x;
+		m[13] = -eye.y;
+		m[14] = -eye.z;
+		return *this;
+	}
 	friend vec4 operator*(const mat4& a, const vec4& b);
 
 	mat4& mul(mat4& left, mat4& right) {

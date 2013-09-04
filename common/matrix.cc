@@ -98,19 +98,6 @@ void __mat4_set_rotate_z(float m[16], float rad) {
 	m[15] = 1.0;
 }
 
-#if 0
-/* D3D RH Style */
-void __mat4_set_perspective(float m[16], float fov, float a, float zn, float zf) {
-	memset(m, 0, sizeof(float[16]));
-	float ys = 1.0 / tanf(fov / 2.0);
-	float xs = ys / a;
-	m[0] = xs;
-	m[5] = ys;
-	m[10] = zf / (zn - zf);
-	m[11] = -1.0;
-	m[14] = (zn * zf) / (zn - zf);
-}
-#else
 void __mat4_set_perspective(float m[16], float fov, float a, float zn, float zf) {
 	memset(m, 0, sizeof(float[16]));
 	float fn = 1.0f / (zf - zn);
@@ -121,7 +108,6 @@ void __mat4_set_perspective(float m[16], float fov, float a, float zn, float zf)
 	m[11] = -1.0f;
 	m[14] = -2.0f * (zn * zf) * fn;
 }
-#endif
 
 void __mat4_set_ortho(float m[16], float l, float r, float b, float t, float n, float f) {
 	memset(m, 0, sizeof(float[16]));
@@ -134,3 +120,27 @@ void __mat4_set_ortho(float m[16], float l, float r, float b, float t, float n, 
 	m[15] = 1.0;
 }
 
+/* per gluLookAt docs */
+mat4& mat4::lookAt(const vec3& eye, const vec3& center, const vec3& up) {
+	vec3 f = (center - eye).normalize();
+	vec3 upn = up;
+	vec3 s = cross(f, upn);
+	vec3 u = cross(s, f);
+	m[0] = s[0];
+	m[1] = u[0];
+	m[2] = -f[0];
+	m[3] = 0.0f;
+	m[4] = s[1];
+	m[5] = u[1];
+	m[6] = -f[1];
+	m[7] = 0.0f;
+	m[8] = s[2];
+	m[9] = u[2];
+	m[10] = -f[2];
+	m[11] = 0.0f;
+	m[12] = 0.0f;
+	m[13] = 0.0f;
+	m[14] = 0.0f;
+	m[15] = 1.0f;
+	return *this;
+}
