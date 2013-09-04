@@ -55,6 +55,13 @@ public:
 		v[0] = x; v[1] = y; v[2] = z; v[3] = 1.0;
 	};
 
+	void set(float a, float b, float c, float d) {
+		v[0] = a; v[1] = b; v[2] = c; v[3] = d;
+	}
+	void set(float a, float b, float c) {
+		v[0] = a; v[1] = b; v[2] = c; v[3] = 1.0;
+	}
+
 	/* raw accessor suitable for glSomething4fv() */
 	operator const float*() { return v; };
 
@@ -89,6 +96,57 @@ inline vec4 operator+(const vec4& a, const vec4& b) {
 inline vec4 operator-(const vec4& a, const vec4& b) {
 	return vec4(a[0]-b[0],a[1]-b[1],a[2]-b[2],a[3]-b[3]);
 }
+
+class vec3 {
+	float v[3];
+public:
+	vec3() { };
+	vec3(const vec3 &x) {
+		v[0] = x[0]; v[1] = x[1]; v[2] = x[2];
+	};
+	vec3(const float *raw) {
+		memcpy(v, raw, sizeof(float[4]));
+	}
+	vec3(float a, float b, float c) {
+		v[0] = a; v[1] = b; v[2] = c;
+	};
+	void set(float a, float b, float c) {
+		v[0] = a; v[1] = b; v[2] = c;
+	}
+
+	/* raw accessor suitable for glSomething4fv() */
+	operator const float*() { return v; };
+
+	vec3& operator*=(float n) {
+		v[0]*=n; v[1]*=n; v[2]*=n;
+		return *this;
+	}
+
+	/* linear accessors */
+	float operator[] (const int n) const { return v[n]; };
+	float& operator[] (const int n) { return v[n]; };
+	float operator() (const int n) const { return v[n]; };
+	float& operator() (const int n) { return v[n]; };
+
+	friend vec3 operator*(const vec3& a, const float b);
+	friend vec3 operator/(const vec3& a, const float b);
+	friend vec3 operator+(const vec3& a, const vec3& b);
+	friend vec3 operator-(const vec3& a, const vec3& b);
+};
+
+inline vec3 operator*(const vec3& a, const float n) {
+	return vec3(a.v[0]*n,a.v[1]*n,a.v[2]*n);
+}
+inline vec3 operator/(const vec3& a, const float n) {
+	return vec3(a.v[0]/n,a.v[1]/n,a.v[2]/n);
+}
+inline vec3 operator+(const vec3& a, const vec3& b) {
+	return vec3(a[0]+b[0],a[1]+b[1],a[2]+b[2]);
+}
+inline vec3 operator-(const vec3& a, const vec3& b) {
+	return vec3(a[0]-b[0],a[1]-b[1],a[2]-b[2]);
+}
+
 
 class mat4 {
 	float m[16];
