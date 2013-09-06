@@ -39,6 +39,7 @@ glGetUniformBlockIndex
 glGetUniformLocation
 glLinkProgram
 glShaderSource
+glTexBuffer
 glTexImage2D
 glTexParameteri
 glUniform1i

@@ -47,6 +47,7 @@ GLXTN PFNGLGETUNIFORMBLOCKINDEXPROC glGetUniformBlockIndex;
 GLXTN PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
 GLXTN PFNGLLINKPROGRAMPROC glLinkProgram;
 GLXTN PFNGLSHADERSOURCEPROC glShaderSource;
+GLXTN PFNGLTEXBUFFERPROC glTexBuffer;
 GLXTN PFNGLTEXIMAGE2DPROC glTexImage2D;
 GLXTN PFNGLTEXPARAMETERIPROC glTexParameteri;
 GLXTN PFNGLUNIFORM1IPROC glUniform1i;
@@ -104,6 +105,7 @@ struct {
 	__GLFN__(glGetUniformLocation),
 	__GLFN__(glLinkProgram),
 	__GLFN__(glShaderSource),
+	__GLFN__(glTexBuffer),
 	__GLFN__(glTexImage2D),
 	__GLFN__(glTexParameteri),
 	__GLFN__(glUniform1i),
