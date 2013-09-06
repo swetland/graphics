@@ -40,9 +40,10 @@ struct ubObject {
 };
 
 struct ubMaterial {
-	vec4 Ambient;
-	vec4 Diffuse;
-	vec4 Specular;
+	vec4 Ambient;		/* ambient factor (of Color) */
+	vec4 Diffuse;		/* diffuse factor (of Color) */
+	vec4 Specular;		/* specular factor (of LightColor) */
+	vec4 Color;		/* used if non-textured */
 	float Shininess;
 };
 
@@ -65,6 +66,7 @@ static const char *shader_globals =
 "	vec4 uAmbient;\n"
 "	vec4 uDiffuse;\n"
 "	vec4 uSpecular;\n"
+"	vec4 uColor;\n"
 "	float uShininess;\n"
 "};\n"
 ;

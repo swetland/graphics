@@ -20,6 +20,8 @@
 #include "matrix.h"
 #include "util.h"
 #include "textgrid.h"
+#include "shared.h"
+#include "Effect.h"
 
 // idx, src, dst, count, offset, stride, divisor
 static VertexAttrDesc layout[] = {
@@ -27,14 +29,6 @@ static VertexAttrDesc layout[] = {
         { 1, SRC_FLOAT, DST_FLOAT,      3, 12, 32, 0 },
         { 2, SRC_FLOAT, DST_FLOAT,      2, 24, 32, 0 },
 	{ 3, SRC_INT8,  DST_NORMALIZED, 4,  0,  4, 1 },
-};
-
-static float locationx[] = {
-	0, 0, 0,
-	-2, 0, 0,
-	-4, 0, 0,
-	2, 0, 0,
-	4, 0, 0,
 };
 
 #define SZ 32
@@ -57,14 +51,16 @@ public:
 private:
 	float t;
 
-	PixelShader ps;
-	VertexShader vs;
-	Program pgm;
+	Effect *e;
+
 	IndexBuffer ibuf;
 	VertexBuffer vbuf;
-	UniformBuffer ubuf;
 	VertexBuffer lbuf;
 	VertexAttributes attr;
+
+	UniformBuffer scn;
+	UniformBuffer mat;
+	UniformBuffer obj;
 
 	TextGrid text;
 
@@ -120,20 +116,15 @@ int TestApp::init(void) {
 	VertexBuffer *data[] = {
 		&vbuf, &vbuf, &vbuf, &lbuf,
 	};
-	if (ps.load("simple.fragment"))
-		return -1;
-	if (vs.load("simple.vertex"))
-		return -1;
-	if (pgm.link(&vs, &ps))
-		return -1;
 
-	if (!(m = load_wavefront_obj("unitcubeoid.obj")))
+	if (!(e = Effect::load("simple")))
+		return -1;
+	if (!(m = load_wavefront_obj("unitcube.obj")))
 		return error("cannot load model");
 	printx("Object Loaded. %d vertices, %d indices.\n", m->vcount, m->icount);
 
 	vbuf.load(m->vdata, 32 * m->vcount);
 	ibuf.load(m->idx, 2 * m->icount);
-	ubuf.load(NULL, 32 * 4);
 
 	proj.setPerspective(D2R(90.0), width / (float) height, 0.1f, 250.0f);
 
@@ -154,15 +145,16 @@ static float rate = 90.0;
 void TestApp::onKeyUp(unsigned code) {
 	switch (code) {
 	case SDL_SCANCODE_P:
-		ps.load("simple.fragment");
-		vs.load("simple.vertex");
-		pgm.link(&vs, &ps);
+		Effect *e2 = Effect::load("simple");
+		if (e2) {
+			delete e;
+			e = e2;
+		}
 		break;
 	}
 }
 
 void TestApp::render(void) {
-	unsigned stride, offset;
 	int update = 0;
 
 	if (mouseBTN & 1) {
@@ -186,26 +178,40 @@ void TestApp::render(void) {
 	if (keydown(SDL_SCANCODE_D)) { nx += 0.01; update = 1; }
 	if (keydown(SDL_SCANCODE_W)) { ny -= 0.01; update = 1; }
 	if (keydown(SDL_SCANCODE_S)) { ny += 0.01; update = 1; }
-oops:
 	if (update)
 		build();
 
-	struct {
-		mat4 mvp;
-		mat4 mv;
-	} cb0;
-	mat4 world, view, tmp;
+
+	struct ubScene scene;
+	struct ubObject object;
+	struct ubMaterial material;
+	
+	mat4 model, view, tmp;
 
 	view.identity().rotateX(D2R(10)).rotateY(t).translate(0, 0, -10);
 	view.identity().rotateY(D2R(ry)).rotateX(D2R(rx)).translate(0, 0, -zoom);
-//	world.identity().translate(0.5, 0.5, 0.5).rotateY(D2R(ry)).rotateX(D2R(rx));
-	world.identity().translate(0.5, 0.5, 0.5);
-	cb0.mvp = world * view * proj;
-	cb0.mv = world * view;
+	model.identity().translate(0.5, 0.5, 0.5);
+	object.mvp = model * view * proj;
+	object.mv = model * view;
 
-	pgm.use();
-	ubuf.load(&cb0, sizeof(cb0));
-	ubuf.use(3);
+	scene.LightColor.set(1.0, 1.0, 1.0);
+	scene.LightPosition.set(0.0, 1.0, 0.0, 0.0);
+
+	material.Ambient.set(0.325,0.325,0.325,1.0);
+	material.Diffuse.set(1.0,1.0,1.0,1.0);
+	material.Specular.set(1.0,1.0,1.0,1.0);
+	material.Specular.set(0, 0, 0, 0);
+	material.Color.set(0,1,0,1);
+	material.Shininess = 50.0f;
+
+	scn.load(&scene, sizeof(scene));
+	mat.load(&material, sizeof(material));
+	obj.load(&object, sizeof(object));
+	scn.use(U_SCENE);
+	mat.use(U_MATERIAL);
+	obj.use(U_OBJECT);
+
+	e->apply();
 	attr.use();
 	glDrawElementsInstanced(GL_TRIANGLES, m->icount, GL_UNSIGNED_SHORT, NULL, lcount);
 

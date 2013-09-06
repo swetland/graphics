@@ -3,42 +3,52 @@
 
 -- vertex
 
-layout(std140) uniform block3 {
-	mat4 MVP;
-	mat4 MV;
-};
-
-layout(location = A_POSITION) in vec4 POSITION;
-layout(location = A_NORMAL) in vec4 NORMAL;
-layout(location = A_TEXCOORD) in vec2 TEXCOORD;
+layout(location = A_POSITION) in vec4 aPosition;
+layout(location = A_NORMAL) in vec4 aNormal;
+layout(location = A_TEXCOORD) in vec2 aTexCoord;
 
 in vec4 LOCATION;
 
-out vec2 vTEXCOORD;
-out float vDIFFUSE;
+out vec2 vTexCoord;
+out vec3 vPosition;
+out vec3 vNormal;
 
 void main() {
-	vec4 pos = POSITION;
+	vec4 pos = aPosition;
 
-	pos.xyz += LOCATION.xyz * vec3(127,127,127);
+	pos.xyz += LOCATION.xyz * vec3(127.0, 127.0, 127.0);
 
-	vec3 mvPosition = (MV * pos).xyz;
-	vec3 mvNormal = (MV * vec4(NORMAL.xyz,0.0)).xyz;
-
-	vec3 lightVec = normalize(vec3(10,20,25) - mvPosition);
-	float diffuse = max(dot(mvNormal, lightVec), 0.0);
-
-	gl_Position = MVP * pos; //POSITION;
-	vTEXCOORD = TEXCOORD;
-	vDIFFUSE = diffuse;
+	vPosition = (uMV * pos).xyz;
+	vNormal = (uMV * vec4(aNormal.xyz,0.0)).xyz;
+	vTexCoord = aTexCoord;
+	gl_Position = uMVP * pos;
 }
 
 -- fragment
 
-varying vec2 vTEXCOORD;
-varying float vDIFFUSE;
+in vec2 vTexCoord;
+in vec3 vPosition;
+in vec3 vNormal;
 
 void main() {
-	vec4 c = vec4(1.0, 0.0, 0.0, 1.0);
-	gl_FragColor = c * 0.25 + c * vDIFFUSE;
+        vec4 c = uColor;
+	vec3 n = normalize(vNormal);
+	vec3 s;
+	if (uLightPosition.w > 0) {
+		/* positional light, compute direction */
+		s = normalize(uLightPosition.xyz - vPosition);
+	} else {
+		/* directional light - light position is actually a vector */
+		s = uLightPosition.xyz;
+	}
+	vec3 v = normalize(-vPosition);
+	vec3 h = normalize(v + s);
+
+	gl_FragColor = uAmbient * c
+		+ uDiffuse * c * max( dot(s, n), 0.0) 
+#ifdef SPECULAR
+		+ uSpecular * uLightColor * pow( max( dot(h,n), 0.0), uShininess)
+#endif
+		;
+
 }
