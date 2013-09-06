@@ -20,20 +20,26 @@
 #include "app.h"
 #include "texturefont.h"
 
+/* performance experiments to try sometime:
+ * - pass color via vtx attr instead of unpacking in shader
+ * - pass character vertex table via uniform instead of texturebuffer
+ * - instead of DrawArraysInstanced:
+ *   - call DrawElements with a fixed 1,1,1,1,1,1,2,2,2,2,2,2,3,... index buffer
+ *   - call DrawArrays with unpacked vtx array (6 per character)
+ * - explore different vtx formats (int vs float vs short, etc)
+*/
+
 // idx, src, dst, count, offset, stride, divisor
 static VertexAttrDesc layout[] = {
-	{ 0, SRC_INT16, DST_INTEGER,    4,  0, 16, 0 },
-	{ 1, SRC_UINT16, DST_INTEGER,   2,  8, 16, 0 },
-	{ 2, SRC_UINT8, DST_NORMALIZED, 4, 12, 16, 0 },
+	{ 0, SRC_INT32, DST_INTEGER, 4, 0, 16, 6 },
 };
 
 int TextureFont::init(App *app, const char *fontname) {
-	VertexBuffer *vdata[] = {
-		&vtx, &vtx, &vtx,
-	};
+	VertexBuffer *vdata[] = { &vtx };
 	char tmp[256];
+	float *cdata, *cp; 
+	float dim, adj;
 	unsigned sz;
-
 	header = NULL;
 	max = 128;
 	count = 0;
@@ -64,21 +70,62 @@ int TextureFont::init(App *app, const char *fontname) {
 	first = header->first;
 	last = first + header->count - 1;
 
-	if (pgm.load("texturefont.vs", "texturefont.gs", "texturefont.fs"))
+	if (pgm.load("texturefont.vs", "texturefont.fs"))
 		goto fail;
 
-	u.mvp.setOrtho(0, app->getWidth(), app->getHeight(), 0, -1, 1);
-	u.dim = glyphs.width;
-	u.adj[0] = 0.5 / float(glyphs.width);
-	u.adj[1] = 0.5 / float(glyphs.width);
+	cp = cdata = (float*) malloc(sizeof(float) * 4 * 6 * header->count);
+
+	/* to adjust int coords to texture coords */
+	dim = glyphs.width;
+	adj = 0.5 / float(glyphs.width);
+
+	/* generate a 2d+uv quad for each character */
+	for (unsigned n = 0; n < header->count; n++) {
+		*cp++ = 0;
+		*cp++ = -info[n].h;
+		*cp++ = float(info[n].x) / dim + adj;
+		*cp++ = float(info[n].y) / dim + adj;
+
+		*cp++ = info[n].w;
+		*cp++ = -info[n].h;
+		*cp++ = float(info[n].x + info[n].w - 1) / dim + adj;
+		*cp++ = float(info[n].y) / dim + adj;
+
+		*cp++ = 0;
+		*cp++ = 0;
+		*cp++ = float(info[n].x) / dim + adj;
+		*cp++ = float(info[n].y + info[n].h - 1) / dim + adj;
+
+		*cp++ = info[n].w;
+		*cp++ = 0;
+		*cp++ = float(info[n].x + info[n].w - 1) / dim + adj;
+		*cp++ = float(info[n].y + info[n].h - 1) / dim + adj;
+
+		*cp++ = 0;
+		*cp++ = 0;
+		*cp++ = float(info[n].x) / dim + adj;
+		*cp++ = float(info[n].y + info[n].h - 1) / dim + adj;
+
+		*cp++ = info[n].w;
+		*cp++ = -info[n].h;
+		*cp++ = float(info[n].x + info[n].w - 1) / dim + adj;
+		*cp++ = float(info[n].y) / dim + adj;
+	}
+	cbuf.load(cdata, sizeof(float) * 4 * 6 * header->count);
 	vtx.load(data, sizeof(CharData) * max);
-	ubuf.load(&u, sizeof(u));
+
+	mvp.setOrtho(0, app->getWidth(), app->getHeight(), 0, -1, 1);
+	ubuf.load(&mvp, sizeof(mvp));
 
 	attr.init(layout, vdata, sizeof(layout) / sizeof(layout[0]));
-
 	dirty = 0;
 
-	color = RGBA(255,255,255,255);
+	glGenTextures(1, &tbid);
+	glActiveTexture(GL_TEXTURE0 + 15);
+	glBindTexture(GL_TEXTURE_BUFFER, tbid);
+	glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, cbuf.id);
+
+	color = RGBA(255,255,255,0);
 	return 0;
 fail:
 	if (data) {
@@ -112,13 +159,38 @@ void TextureFont::render(App *app) {
 	}
 
 	pgm.use();
-	ubuf.use(0);
+	ubuf.use(3);
 	attr.use();
-	glyphs.use(0);
+	glyphs.use(1);
+	glActiveTexture(GL_TEXTURE0 + 0);
+	glBindTexture(GL_TEXTURE_BUFFER, tbid);
+	glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, cbuf.id);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDrawArrays(GL_POINTS, 0, count);
+	glDrawArraysInstanced(GL_TRIANGLES, 0, 6, count * 6);
 	glDisable(GL_BLEND);
+}
+
+void TextureFont::measure(const char *s, unsigned *width, unsigned *height) {
+	unsigned w = 0;
+	unsigned h = 0;
+	while (*s) {
+		unsigned n = *s++;
+		if (n == 0)
+			break;
+		if ((n < first) || (n > last))
+			continue;
+		n -= first;
+		unsigned ch = info[n].h;
+		unsigned cw = info[n].w;
+		if (ch > h)
+			h = ch;
+		w += cw;
+		if (*s)
+			w += info[n].advance;
+	}
+	*width = w;
+	*height = h;
 }
 
 void TextureFont::puts(int x, int y, const char *s) {
@@ -131,11 +203,8 @@ void TextureFont::puts(int x, int y, const char *s) {
 		n -= first;
 		data[count].x = x + info[n].dx;
 		data[count].y = y - info[n].dy;
-		data[count].w = info[n].w;
-		data[count].h = info[n].h;
-		data[count].s = info[n].x;
-		data[count].t = info[n].y;
-		data[count].rgba = color;
+		data[count].id = n * 6;
+		data[count].rgba = color & 0xFFFFFF; // strip alpha
 		count++;
 		x += info[n].advance;
 	}

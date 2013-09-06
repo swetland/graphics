@@ -44,9 +44,10 @@ struct FontInfo {
 #define TEXTUREFONT_MAGIC 0x746E6F46
 
 struct CharData {
-	u16 x, y, w, h;
-	u16 s, t;
-	u32 rgba;
+	int x;
+	int y;
+	int id;
+	int rgba;
 };
 
 class TextureFont {
@@ -57,18 +58,14 @@ public:
 	void printf(int x, int y, const char *fmt, ...);
 	void puts(int x, int y, const char *s);
 	void setColor(unsigned rgba);
+	void measure(const char *s, unsigned *width, unsigned *height);
 private:
 	FontInfo *header;
 	CharInfo *info;
 	unsigned first;
 	unsigned last;
 
-	struct {
-		mat4 mvp;
-		float adj[2];
-		float dim;
-	} u;
-
+	mat4 mvp;
 	UniformBuffer ubuf;
 	VertexBuffer vtx;
 	VertexBuffer cbuf;
@@ -78,6 +75,8 @@ private:
 	Program pgm;
 	Texture2D glyphs;
 	VertexAttributes attr;
+
+	unsigned tbid;
 
 	CharData *data;
 	CharData *next;

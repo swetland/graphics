@@ -1,77 +1,39 @@
-#version 150
-#extension GL_ARB_separate_shader_objects : enable
+#version 140
+#extension GL_ARB_explicit_attrib_location : enable
 
-layout(std140) uniform udata0 {
-	mat4 MVP;
-	vec2 adj;
-	float dim;
+uniform samplerBuffer sampler0; // character data
+uniform sampler2D sampler1; // glyph texture
+
+layout(std140) uniform block3 {
+	mat4 xMVP;
 };
 
 -- vs
 
-layout(location = 0) in ivec4 posn;
-layout(location = 1) in ivec2 texc;
-layout(location = 2) in vec4 color;
+layout(location = 0) in ivec4 aData; // X, Y, ID, RGBA
 
-out vec2 size;
-out vec2 tex;
-out vec4 vcolor;
+out vec2 vTexCoord;
+out vec4 vColor;
 
 void main() {
-	gl_Position = vec4(posn.x, posn.y, 0, 1);
-	size = posn.zw;
-	tex = texc;
-	vcolor = color;
-}
-
--- gs
-
-layout (points) in;
-layout (triangle_strip, max_vertices=4) out;
-
-in vec2 size[1];
-in vec2 tex[1];
-in vec4 vcolor[1];
-
-out vec2 s0tc;
-out vec4 color;
-
-void main() {
-	vec4 p = gl_in[0].gl_Position;
-	vec2 sz = size[0];
-	vec2 tsz = sz - vec2(1.0,1.0);
-
-	gl_Position = MVP * vec4(p.x, p.y - sz.y, 0.0, 1.0);
-	s0tc = tex[0] / dim + adj;
-	color = vcolor[0];
-	EmitVertex();
-
-	gl_Position = MVP * vec4(p.x + sz.x, p.y - sz.y, 0.0, 1.0);
-	s0tc = (tex[0] + vec2(tsz.x,0)) / dim + adj;
-	color = vcolor[0];
-	EmitVertex();
-
-	gl_Position = MVP * vec4(p.x, p.y, 0.0, 1.0);
-	s0tc = (tex[0] + vec2(0,tsz.y)) / dim + adj;
-	color = vcolor[0];
-	EmitVertex();
-
-	gl_Position = MVP * vec4(p.x + sz.x, p.y, 0.0, 1.0);
-	s0tc = (tex[0] + tsz) / dim + adj;
-	color = vcolor[0];
-	EmitVertex();
-
-	EndPrimitive();
+	vec4 cdata = texelFetch(sampler0, aData.z + gl_VertexID);
+	vec4 pos = vec4(aData.x + cdata.x, aData.y + cdata.y, 0.0, 1.0);
+	vColor = vec4(
+			float(aData.w & 0xFF) / 255.0,
+			float((aData.w >> 8) & 0xFF) / 255.0,
+			float((aData.w >> 16) & 0xFF) / 255.0,
+			1.0
+		);
+	vTexCoord = vec2(cdata.zw);
+	gl_Position = xMVP * pos;
 }
 
 -- fs
 
-uniform sampler2D s0glyphs;
-
-in vec2 s0tc;
-in vec4 color;
+in vec2 vTexCoord;
+in vec4 vColor;
 
 void main() {
-	vec4 c = texture2D(s0glyphs, s0tc);
-	gl_FragColor = vec4(color.r, color.g, color.b, c.r);
+	vec4 c = texture2D(sampler1, vTexCoord);
+	gl_FragColor = vec4(vColor.rgb, c.r);
 }
