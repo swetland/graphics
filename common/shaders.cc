@@ -102,7 +102,7 @@ void Program::bind() {
 	for (n = 0; n < sizeof(_samplernames) / sizeof(_samplernames[0]); n++) {
 		r = glGetUniformLocation(id, _samplernames[n]);
 		if (r != -1) {
-			fprintf(stderr,"found %s @ %d\n", _samplernames[0], r);
+			fprintf(stderr,"found %s @ %d\n", _samplernames[n], r);
 			glUniform1i(r, n);
 		}
 	}
