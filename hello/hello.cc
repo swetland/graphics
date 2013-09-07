@@ -119,14 +119,14 @@ int TestApp::init(void) {
 
 	if (!(e = Effect::load("simple")))
 		return -1;
-	if (!(m = load_wavefront_obj("unitcube.obj")))
+	if (!(m = load_wavefront_obj("unitcubeoid.obj")))
 		return error("cannot load model");
 	printx("Object Loaded. %d vertices, %d indices.\n", m->vcount, m->icount);
 
 	vbuf.load(m->vdata, 32 * m->vcount);
 	ibuf.load(m->idx, 2 * m->icount);
 
-	proj.setPerspective(D2R(90.0), width / (float) height, 0.1f, 250.0f);
+	proj.setPerspective(D2R(50.0), width / (float) height, 0.1f, 250.0f);
 
 	build();
 	zoom = SZ;
@@ -195,14 +195,14 @@ void TestApp::render(void) {
 	object.mv = model * view;
 
 	scene.LightColor.set(1.0, 1.0, 1.0);
-	scene.LightPosition.set(0.0, 1.0, 0.0, 0.0);
+	scene.LightPosition = view * vec4(0, 1, 0, 0);
+	scene.LightPosition.w = 0;
 
 	material.Ambient.set(0.325,0.325,0.325,1.0);
 	material.Diffuse.set(1.0,1.0,1.0,1.0);
 	material.Specular.set(1.0,1.0,1.0,1.0);
-	material.Specular.set(0, 0, 0, 0);
 	material.Color.set(0,1,0,1);
-	material.Shininess = 50.0f;
+	material.Shininess = 250.0f;
 
 	scn.load(&scene, sizeof(scene));
 	mat.load(&material, sizeof(material));

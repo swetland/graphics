@@ -17,6 +17,8 @@
 #include "matrix.h"
 #include "shared.h"
 
+#include "texturefont.h"
+
 #include "Model.h"
 #include "Effect.h"
 
@@ -80,6 +82,8 @@ private:
 
 	UniformBuffer obj, mat, scn;
 	mat4 proj;
+
+	TextureFont font;
 };
 
 TestApp::TestApp() : App(), r(0.0) { }
@@ -95,6 +99,8 @@ int TestApp::init(void) {
 	ge = Effect::load("flat");
 		
 	proj.setPerspective(D2R(90.0), width / (float) height, 0.1f, 250.0f);
+
+	font.init(this, "orbitron-bold-72");
 	return 0;
 }
 
@@ -110,7 +116,7 @@ void TestApp::render(void) {
 	r += 1.0;
 	if (r > 360.0) r = 0.0;
 
-	view.camera(vec3(1.5, 1.0, 2.0), vec3(1.5, 1.0, 0.0), vec3(0, 1, 0));
+	view.camera(vec3(0, 1.0, 3.0), vec3(0, 1.0, 0.0), vec3(0, 1, 0));
 
 	model.identity();
 	object.mvp = model * view * proj;
@@ -121,15 +127,16 @@ void TestApp::render(void) {
 	g->render();
 
 	scene.LightColor.set(1.0, 1.0, 1.0);
-	scene.LightPosition.set(0.0, 1.0, 0.0, 0.0);
+	scene.LightPosition = view * vec4(0, 1, 0, 0);
+	scene.LightPosition.w = 0;
 	scn.load(&scene, sizeof(scene));
 	scn.use(U_SCENE);
 
 	material.Ambient.set(0.325,0.325,0.325,1.0);
 	material.Diffuse.set(1.0,1.0,1.0,1.0);
-	material.Specular.set(1.0,1.0,1.0,1.0);
 	material.Specular.set(0, 0, 0, 0);
 	material.Shininess = 50.0f;
+	material.Color.set(1, 0, 0, 1);
 	mat.load(&material, sizeof(material));
 	mat.use(U_MATERIAL);
 
@@ -146,15 +153,19 @@ void TestApp::render(void) {
 	obj.load(&object, sizeof(object));
 	e->apply();
 	m->render();
-
+	
 	material.Specular.set(1,1,1,1);
 	mat.load(&material, sizeof(material));
-	model.identity().translate(1.50, 0.5, 0.0);
+	model.identity().translate(1.5, 0.5, 0.0);
 	object.mvp = model * view * proj;
 	object.mv = model * view;
 	obj.load(&object, sizeof(object));
 	e->apply();
 	m->render();
+
+	font.clear();
+	font.puts(100, 100, "Hello World!");
+	font.render(this);
 }
 
 App *createApp(void) {

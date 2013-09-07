@@ -33,7 +33,7 @@ void main() {
 #ifdef TEXTURED
 	vec4 c = texture2D(sampler0, vTexCoord);
 #else
-        vec4 c = vec4(1.0, 0.0, 0.0, 1.0);
+        vec4 c = uColor;
 #endif
 	vec3 n = normalize(vNormal);
 	vec3 s;
@@ -48,7 +48,7 @@ void main() {
 	vec3 h = normalize(v + s);
 
 	gl_FragColor = uAmbient * c
-		+ uDiffuse * c * max( dot(s, n), 0.0) 
+		+ uDiffuse * c * max(dot(s, n), 0.0) 
 #ifdef SPECULAR
 		+ uSpecular * uLightColor * pow( max( dot(h,n), 0.0), uShininess)
 #endif
