@@ -29,16 +29,15 @@ public:
 	virtual void onKeyDown(unsigned code) {};
 	virtual void onKeyUp(unsigned code) {};
 
-	/* glue - do not use */
-	int start(void);
-	void handleEvents(void);
-
 	int getWidth(void) { return width; }
 	int getHeight(void) { return height; }
 
 	int keydown(unsigned code) {
 		return keystate[code >> 5] & (1 << (code & 0x1f));
 	}
+
+	static int __main(int argc, char **argv);
+
 protected:
 	int width;
 	int height;
@@ -55,7 +54,12 @@ protected:
 	int fps;
 
 private:
+	int start(void);
+	void handleEvents(void);
+	void setOptions(int argc, char **argv);
+
 	int _vsync;
+	int _fullscreen;
 	SDL_Window *win;
 	SDL_GLContext glcontext;
 };

@@ -61,24 +61,26 @@ void App::handleEvents(void) {
 	}
 }
 
-#if 0
 void App::setOptions(int argc, char **argv) {
 	char *x;
 	argc--;
 	argv++;
 	while (argc--) {
-		if (!strcmp("-nosync",argv[0])) {
+		if (!strcmp("-nosync", argv[0])) {
 			_vsync = 0;
+		} else if (!strcmp("-fullscreen", argv[0])) {
+			_fullscreen = 1;
+		} else if (!strcmp("-fs", argv[0])) {
+			_fullscreen = 1;
 		} else if (isdigit(argv[0][0]) && (x = strchr(argv[0],'x'))) {
-			_width = atoi(argv[0]);
-			_height = atoi(x + 1);
+			width = atoi(argv[0]);
+			height = atoi(x + 1);
 		} else {
 			fprintf(stderr,"unknown argument '%s'\n",argv[0]);
 		}
 		argv++;
 	}
 }
-#endif
 
 static void dump_gl_params(void) {
 #define GGI(name) { int n = -1; glGetIntegerv(GL_##name, &n); fprintf(stderr, #name ": %d\n", n); }
@@ -184,12 +186,16 @@ int App::start(void) {
 	//SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, _vsync);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, _vsync);
 
+	unsigned flags = SDL_WINDOW_OPENGL;
+	if (_fullscreen)
+		flags |= SDL_WINDOW_FULLSCREEN;
+
 	win = SDL_CreateWindow("Application",
 		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-		width, height, SDL_WINDOW_OPENGL
-	       	// | SDL_WINDOW_RESIZABLE
-		// | SDL_WINDOW_FULLSCREEN
-		);
+		width, height, flags);
+
+	SDL_GetWindowSize(win, &width, &height);
+	printx("Window is %d x %d.\n", width, height);
 
 	int minor = 3;
 	while (minor > 0) {
@@ -266,7 +272,7 @@ int App::start(void) {
 	return -1;
 }
 
-App::App() : width(800), height(600), _vsync(1) {
+App::App() : width(800), height(600), _vsync(1), _fullscreen(0) {
 }
 
 App::~App() {
@@ -276,7 +282,12 @@ void init_io(void);
 
 int main(int argc, char **argv) {
 	init_io();
+	return App::__main(argc, argv);
+}
+
+int App::__main(int argc, char **argv) {
 	App *app = createApp();
+	app->setOptions(argc, argv);
 	app->start();
 	app->release();
 	return 0;

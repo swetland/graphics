@@ -71,8 +71,6 @@ private:
 };
 
 TestApp::TestApp() : App(), t(0.0f), zoom(0), rx(0), ry(0), nx(0), ny(0) {
-	width = 1280;
-	height = 1024;
 }
 
 void TestApp::release(void) {
