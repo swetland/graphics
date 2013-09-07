@@ -49,7 +49,7 @@ int Model::init(const char *name) {
 	printx("Object '%s' loaded. %d vertices, %d indices.\n",
 		name, m->vcount, m->icount);
 
-	texture.load(tname.c_str(), 0);
+	texture.load(tname.c_str(), OPT_TEX2D_GEN_MIPMAP);
 
 	vbuf.load(m->vdata, 32 * m->vcount);
 	ibuf.load(m->idx, 2 * m->icount);
