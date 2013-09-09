@@ -58,6 +58,7 @@ GLXTN PFNGLUSEPROGRAMPROC glUseProgram;
 GLXTN PFNGLVERTEXATTRIBDIVISORPROC glVertexAttribDivisor;
 GLXTN PFNGLVERTEXATTRIBIPOINTERPROC glVertexAttribIPointer;
 GLXTN PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
+GLXTN PFNGLVIEWPORTPROC glViewport;
 #ifndef __NO_GLXTN_TABLE__
 #define __GLFN__(n) { (void**) &n, #n }
 struct {
@@ -116,6 +117,7 @@ struct {
 	__GLFN__(glVertexAttribDivisor),
 	__GLFN__(glVertexAttribIPointer),
 	__GLFN__(glVertexAttribPointer),
+	__GLFN__(glViewport),
 };
 #endif
 #endif
