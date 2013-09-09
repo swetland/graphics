@@ -43,6 +43,15 @@ void App::handleEvents(void) {
 
 	while (SDL_PollEvent(&ev)) {
 		switch (ev.type) {
+		case SDL_WINDOWEVENT:
+			switch (ev.window.event) {
+			case SDL_WINDOWEVENT_RESIZED:
+				width = ev.window.data1;
+				height = ev.window.data2;
+				glViewport(0, 0, width, height);
+				onResize();
+			}
+			break;
 		case SDL_KEYDOWN:
 			code = ev.key.keysym.scancode;
 			keystate[code >> 5] |= (1 << (code & 0x1F));
@@ -168,6 +177,16 @@ static void APIENTRY dbg_callback(GLenum source, GLenum type, GLuint id, GLenum 
 #endif
 }
 
+void App::fullscreen(int yes) {
+	if (yes) {
+		SDL_SetWindowFullscreen(win, SDL_WINDOW_FULLSCREEN);
+		_fullscreen = 1;
+	} else {
+		SDL_SetWindowFullscreen(win, 0);
+		_fullscreen = 0;
+	}
+}
+
 int App::start(void) {
 	memset(keystate, 0, sizeof(keystate));
 
@@ -189,6 +208,7 @@ int App::start(void) {
 	unsigned flags = SDL_WINDOW_OPENGL;
 	if (_fullscreen)
 		flags |= SDL_WINDOW_FULLSCREEN;
+	//flags |= SDL_WINDOW_RESIZABLE;
 
 	win = SDL_CreateWindow("Application",
 		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,

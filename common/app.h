@@ -22,16 +22,18 @@ class App {
 public:
 	App();
 	virtual ~App();
+	void fullscreen(int yes);
 
 	virtual int init(void) = 0;
 	virtual void render(void) = 0;
 	virtual void release(void) {};
 	virtual void onKeyDown(unsigned code) {};
 	virtual void onKeyUp(unsigned code) {};
+	virtual void onResize(void) {};
 
 	int getWidth(void) { return width; }
 	int getHeight(void) { return height; }
-
+	int isFullscreen(void) { return _fullscreen; }
 	int keydown(unsigned code) {
 		return keystate[code >> 5] & (1 << (code & 0x1f));
 	}
