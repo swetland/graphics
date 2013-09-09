@@ -20,7 +20,7 @@ void main() {
 	int id = gl_InstanceID;
 
 	// shift unit rectangle to character cell rectangle
-	pos.xy += vec2(id % cw, (ch-1) - id / ch);
+	pos.xy += vec2(id % cw, (ch-1) - id / cw);
 
 	// adjust unit texture coord to font cell rectangle
 	float tx = (CHARACTER % uint(16));

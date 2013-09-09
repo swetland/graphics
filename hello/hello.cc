@@ -132,7 +132,7 @@ int TestApp::init(void) {
 	attr.init(layout, data, sizeof(layout) / sizeof(layout[0]));
 	ibuf.use();
 	
-	if (text.init(this, 64, 64))
+	if (text.init(this, width/16, height/16))
 		return -1;
 
 	return 0;

@@ -22,19 +22,6 @@
 #include "matrix.h"
 #include "textgrid.h"
 
-#define BUILTIN 0
-
-#if BUILTIN
-#include "TextVS.h"
-#include "TextPS.h"
-#endif
-
-//static AttribInfo text_layout_desc[] = {
-//	{ "POSITION",  0, FMT_32x2_FLOAT, 0, 0, VERTEX_DATA, 0 },
-//	{ "TEXCOORD",  0, FMT_32x2_FLOAT, 0, 8, VERTEX_DATA, 0 },
-//	{ "CHARACTER", 0, FMT_8x1_UINT,   1, 0, INSTANCE_DATA, 1 },
-//};
-
 // idx, src, dst, count, offset, stride, divisor
 static VertexAttrDesc layout[] = {
 	{ 0, SRC_FLOAT, DST_FLOAT,   2, 0, 16, 0 },
