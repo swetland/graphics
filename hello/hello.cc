@@ -47,6 +47,7 @@ public:
 	void release(void);
 	void build(void);
 	void onKeyUp(unsigned code);
+	void onResize(void);
 
 private:
 	float t;
@@ -124,8 +125,6 @@ int TestApp::init(void) {
 	vbuf.load(m->vdata, 32 * m->vcount);
 	ibuf.load(m->idx, 2 * m->icount);
 
-	proj.setPerspective(D2R(50.0), width / (float) height, 0.1f, 250.0f);
-
 	build();
 	zoom = SZ;
 
@@ -135,19 +134,29 @@ int TestApp::init(void) {
 	if (text.init(this, width/16, height/16))
 		return -1;
 
+	onResize();
+
 	return 0;
+}
+
+void TestApp::onResize(void) {
+	proj.setPerspective(D2R(50.0), width / (float) height, 0.1f, 250.0f);
 }
 
 static float rate = 90.0;
 
 void TestApp::onKeyUp(unsigned code) {
 	switch (code) {
-	case SDL_SCANCODE_P:
+	case SDL_SCANCODE_P: {
 		Effect *e2 = Effect::load("simple");
 		if (e2) {
 			delete e;
 			e = e2;
 		}
+		break;
+	}
+	case SDL_SCANCODE_RETURN:
+		fullscreen(!isFullscreen());
 		break;
 	}
 }
