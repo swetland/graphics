@@ -7,17 +7,14 @@ layout(location = A_POSITION) in vec4 aPosition;
 layout(location = A_NORMAL) in vec3 aNormal;
 layout(location = A_TEXCOORD) in vec2 aTexCoord;
 
-in vec4 LOCATION;
+layout(location = 3) in vec4 aOffset;
 
 out vec2 vTexCoord;
 out vec3 vPosition;
 out vec3 vNormal;
 
 void main() {
-	vec4 pos = aPosition;
-
-	pos.xyz += LOCATION.xyz * vec3(127.0, 127.0, 127.0);
-
+	vec4 pos = aPosition + aOffset * vec4(127.0, 127.0, 127.0, 0.0);
 	vPosition = (uMV * pos).xyz;
 	vNormal = normalize(uMV * vec4(aNormal, 0.0)).xyz;
 	vTexCoord = aTexCoord;
