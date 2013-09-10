@@ -34,7 +34,7 @@ static VertexAttrDesc layout[] = {
 	{ 0, SRC_INT32, DST_INTEGER, 4, 0, 16, 6 },
 };
 
-int TextureFont::init(App *app, const char *fontname) {
+int TextureFont::init(const char *fontname) {
 	VertexBuffer *vdata[] = { &vtx };
 	char tmp[256];
 	float *cdata, *cp; 
@@ -70,7 +70,7 @@ int TextureFont::init(App *app, const char *fontname) {
 	first = header->first;
 	last = first + header->count - 1;
 
-	if (pgm.load("texturefont.vs", "texturefont.fs"))
+	if (!(effect = Effect::load("texturefont")))
 		goto fail;
 
 	cp = cdata = (float*) malloc(sizeof(float) * 4 * 6 * header->count);
@@ -114,9 +114,6 @@ int TextureFont::init(App *app, const char *fontname) {
 	cbuf.load(cdata, sizeof(float) * 4 * 6 * header->count);
 	vtx.load(data, sizeof(CharData) * max);
 
-	mvp.setOrtho(0, app->getWidth(), app->getHeight(), 0, -1, 1);
-	ubuf.load(&mvp, sizeof(mvp));
-
 	attr.init(layout, vdata, sizeof(layout) / sizeof(layout[0]));
 	dirty = 0;
 
@@ -149,7 +146,7 @@ void TextureFont::setColor(unsigned rgba) {
 	color = rgba;
 }
 
-void TextureFont::render(App *app) {
+void TextureFont::render(void) {
 	if (count == 0)
 		return;
 
@@ -158,8 +155,7 @@ void TextureFont::render(App *app) {
 		dirty = 0;
 	}
 
-	pgm.use();
-	ubuf.use(3);
+	effect->apply();
 	attr.use();
 	glyphs.use(1);
 	glActiveTexture(GL_TEXTURE0 + 0);

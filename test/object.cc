@@ -100,7 +100,7 @@ int TestApp::init(void) {
 		
 	proj.setPerspective(D2R(90.0), width / (float) height, 0.1f, 250.0f);
 
-	font.init(this, "orbitron-bold-72");
+	font.init("orbitron-bold-72");
 	return 0;
 }
 
@@ -126,6 +126,7 @@ void TestApp::render(void) {
 	ge->apply();
 	g->render();
 
+	scene.Ortho.setOrtho(0, width, height, 0, -1.0, 1.0);
 	scene.LightColor.set(1.0, 1.0, 1.0);
 	scene.LightPosition = view * vec4(0, 1, 0, 0);
 	scene.LightPosition.w = 0;
@@ -165,7 +166,7 @@ void TestApp::render(void) {
 
 	font.clear();
 	font.puts(100, 100, "Hello World!");
-	font.render(this);
+	font.render();
 }
 
 App *createApp(void) {

@@ -16,17 +16,13 @@ void main() {
 	int id = gl_InstanceID;
 
 	// translate cell to destination 
-	pos.x += (id % dims.x) * cell.x;
-	pos.y += uOrthoSize.y - ((id / dims.x) + 1) * cell.y;
+	pos.xy += vec2(id % dims.x, id / dims.x) * cell;
 
 	// adjust unit texture coord to font cell rectangle
-	float tx = (aCharacter % uint(16));
-	float ty = (aCharacter / uint(16));
+	vec2 tadj = vec2(aCharacter % uint(16), aCharacter / uint(16)) / 16.0;
 
 	// translate texture coordinates to character position
-	vTexCoord = aTexCoord
-		+ vec2(tx/16.0,ty/16.0)
-		+ vec2(1.0/256.0,1.0/256.0); 
+	vTexCoord = aTexCoord + tadj + vec2(1.0/256.0,1.0/256.0); 
 
 	pos = uOrtho * pos;
 

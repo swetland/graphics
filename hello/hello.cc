@@ -202,7 +202,7 @@ void TestApp::render(void) {
 	object.mvp = model * view * proj;
 	object.mv = model * view;
 
-	scene.Ortho.setOrtho(0, width, 0, height, -1.0, 1.0);
+	scene.Ortho.setOrtho(0, width, height, 0, -1.0, 1.0);
 	scene.OrthoSize.set(width, height, 0, 0);
 	scene.TextGrid.set(16, 16, width / 16, height / 16);
 	scene.LightColor.set(1.0, 1.0, 1.0);

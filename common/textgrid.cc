@@ -30,12 +30,12 @@ static VertexAttrDesc layout[] = {
 };
 
 static float unit_box_2d[] = {
-	0, 1,  0, 0,
-	0, 0,  0, 1,
-	1, 0,  1, 1,
-	1, 0,  1, 1,
-	1, 1,  1, 0,
-	0, 1,  0, 0,
+	0, 0,  0, 0,
+	0, 1,  0, 1,
+	1, 1,  1, 1,
+	1, 1,  1, 1,
+	1, 0,  1, 0,
+	0, 0,  0, 0,
 };
 
 void TextGrid::resize(int columns, int rows) {

@@ -19,6 +19,8 @@
 #include "app.h"
 #include "matrix.h"
 
+#include "Effect.h"
+
 struct CharInfo {
 	// location in texture
 	u16 x;
@@ -52,8 +54,8 @@ struct CharData {
 
 class TextureFont {
 public:
-	int init(App *app, const char *fontname);
-	void render(App *app);
+	int init(const char *fontname);
+	void render(void);
 	void clear(void);
 	void printf(int x, int y, const char *fmt, ...);
 	void puts(int x, int y, const char *s);
@@ -65,16 +67,11 @@ private:
 	unsigned first;
 	unsigned last;
 
-	mat4 mvp;
-	UniformBuffer ubuf;
+	Effect *effect;
 	VertexBuffer vtx;
 	VertexBuffer cbuf;
-	PixelShader ps;
-	GeometryShader gs;
-	VertexShader vs;
-	Program pgm;
-	Texture2D glyphs;
 	VertexAttributes attr;
+	Texture2D glyphs;
 
 	unsigned tbid;
 

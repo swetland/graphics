@@ -4,11 +4,7 @@
 uniform samplerBuffer sampler0; // character data
 uniform sampler2D sampler1; // glyph texture
 
-layout(std140) uniform block3 {
-	mat4 xMVP;
-};
-
--- vs
+-- vertex
 
 layout(location = 0) in ivec4 aData; // X, Y, ID, RGBA
 
@@ -25,10 +21,10 @@ void main() {
 			1.0
 		);
 	vTexCoord = vec2(cdata.zw);
-	gl_Position = xMVP * pos;
+	gl_Position = uOrtho * pos;
 }
 
--- fs
+-- fragment
 
 in vec2 vTexCoord;
 in vec4 vColor;
