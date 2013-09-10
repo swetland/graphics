@@ -39,6 +39,20 @@ void __mat4_set_ortho(float m[16], float left, float right,
 
 class mat4;
 
+struct ivec4 {
+	union {
+		int v[4];
+		struct {
+			int x, y, z, w;
+		};
+	};
+	ivec4(int a, int b, int c, int d) : x(a), y(b), z(c), w(d) {};
+	ivec4() {};
+	void set(int a, int b, int c, int d) {
+		x = a; y = b; z = c; w = d;
+	};
+};
+
 class vec4 {
 	union {
 		float v[4];
