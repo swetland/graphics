@@ -30,6 +30,7 @@
 struct ubScene {
 	mat4 Ortho;		/* 1:1 2D mapping */
 	vec4 OrthoSize;		/* x,y = width,height */
+	ivec4 TextGrid;		/* cellwidth, cellheight, width, height */
 	vec4 LightColor;
 	vec4 LightPosition;
 };
@@ -55,6 +56,7 @@ static const char *shader_globals =
 "layout(std140) uniform block0 {\n"
 "	mat4 uOrtho;\n"
 "	vec4 uOrthoSize;\n"
+"	ivec4 uTextGrid;\n"
 "	vec4 uLightColor;\n"
 "	vec4 uLightPosition;\n"
 "};\n"
