@@ -141,6 +141,7 @@ int TestApp::init(void) {
 
 void TestApp::onResize(void) {
 	proj.setPerspective(D2R(50.0), width / (float) height, 0.1f, 250.0f);
+	text.resize(width/16, height/16);
 }
 
 static float rate = 90.0;
