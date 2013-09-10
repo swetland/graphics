@@ -16,7 +16,7 @@
 #ifndef _IO_H_
 #define _IO_H_
 
-#include <stringutils.h>
+#include "stringutils.h"
 #include <stdio.h>
 
 /* treat filenames as normal filenames, don't use asset search process */

@@ -75,7 +75,7 @@ void init_io(void) {
 		x[1] = 0;
 	else
 		strcpy(_base_path,".\\");
-	base_path = stringptr(_basepath);
+	base_path = stringptr(_base_path);
 }
 #else
 #include <unistd.h>
