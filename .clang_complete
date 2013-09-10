@@ -1,4 +1,4 @@
 -I/work/sdl2/include/SDL2
 -Icommon
+-Ithirdparty/freetype-2.5.0.1/include
 -std=c++11
-
