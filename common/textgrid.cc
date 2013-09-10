@@ -38,6 +38,19 @@ static float unit_box_2d[] = {
 	0, 1,  0, 0,
 };
 
+void TextGrid::resize(int columns, int rows) {
+	width = columns;
+	height = rows;
+	dirty = 1;
+
+	// TODO: bring existing character data to new grid
+
+	if (grid)
+		delete[] grid;
+	grid = new unsigned char[width * height];
+	clear();
+}
+
 int TextGrid::init(int cellw, int cellh, int columns, int rows) {
 	VertexBuffer *data[] = {
 		&vtx,
@@ -45,19 +58,9 @@ int TextGrid::init(int cellw, int cellh, int columns, int rows) {
 		&cbuf,
 	};
 	float box_2d[4 * 6];
-	width = columns;
-	height = rows;
-	dirty = 0;
 
-	grid = (unsigned char*) malloc(width * height);
-	if (!grid)
-		return -1;
-	clear();
-
-	if (texture.load("font-vincent-8x8.png", 0))
-		return -1;
-	if (!(effect = Effect::load("textgrid")))
-		return -1;
+	grid = nullptr;
+	resize(columns, rows);
 
 	// scale quad to character cell and texture cell size
 	for (int n = 0; n < (4 * 6); n += 4) {
@@ -66,6 +69,11 @@ int TextGrid::init(int cellw, int cellh, int columns, int rows) {
 		box_2d[n + 2] = unit_box_2d[n + 2] * (1.0f / 16.0f);
 		box_2d[n + 3] = unit_box_2d[n + 3] * (1.0f / 16.0f);
 	}
+
+	if (texture.load("font-vincent-8x8.png", 0))
+		return -1;
+	if (!(effect = Effect::load("textgrid")))
+		return -1;
 
 	vtx.load(box_2d, sizeof(box_2d));
 	cbuf.load(grid, width * height);

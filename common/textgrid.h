@@ -21,6 +21,7 @@
 class TextGrid {
 public:
 	int init(int cellw, int cellh, int columns, int rows);
+	void resize(int columns, int rows);
 	void render(void);
 	void clear(void);
 	void printf(int x, int y, const char *fmt, ...);
