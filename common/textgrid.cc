@@ -38,61 +38,50 @@ static float unit_box_2d[] = {
 	0, 1,  0, 0,
 };
 
-int TextGrid::init(App *a, int w, int h) {
-	struct {
-		mat4 proj;
-		unsigned cw;
-		unsigned ch;
-		unsigned pad0;
-		unsigned pad1;
-	} cb;
+int TextGrid::init(int cellw, int cellh, int columns, int rows) {
 	VertexBuffer *data[] = {
 		&vtx,
 		&vtx,
 		&cbuf,
 	};
-	width = w;
-	height = h;
+	float box_2d[4 * 6];
+	width = columns;
+	height = rows;
 	dirty = 0;
 
-	grid = (unsigned char*) malloc(w * h);
+	grid = (unsigned char*) malloc(width * height);
 	if (!grid)
 		return -1;
 	clear();
 
 	if (texture.load("font-vincent-8x8.png", 0))
 		return -1;
-
-	if (ps.load("textgrid.fragment"))
-		return -1;
-	if (vs.load("textgrid.vertex"))
-		return -1;
-	if (pgm.link(&vs, &ps))
+	if (!(effect = Effect::load("textgrid")))
 		return -1;
 
+	// scale quad to character cell and texture cell size
+	for (int n = 0; n < (4 * 6); n += 4) {
+		box_2d[n + 0] = unit_box_2d[n + 0] * float(cellw);
+		box_2d[n + 1] = unit_box_2d[n + 1] * float(cellh);
+		box_2d[n + 2] = unit_box_2d[n + 2] * (1.0f / 16.0f);
+		box_2d[n + 3] = unit_box_2d[n + 3] * (1.0f / 16.0f);
+	}
 
-	cb.proj.setOrtho(0, w, 0, h, -1, 1);	
-	cb.cw = width;
-	cb.ch = height;
-
-	vtx.load(unit_box_2d, sizeof(unit_box_2d));
+	vtx.load(box_2d, sizeof(box_2d));
 	cbuf.load(grid, width * height);
-	ubuf.load(&cb, sizeof(cb));
-
 	attr.init(layout, data, sizeof(layout) / sizeof(layout[0]));
 
 	return 0;
 }
 
-void TextGrid::render(App *a) {
+void TextGrid::render(void) {
 	if (dirty) {
 		dirty = 0;
 		cbuf.load(grid, width * height);
 	}
-	pgm.use();
 	attr.use();
-	ubuf.use(3);
 	texture.use(0);
+	effect->apply();
 	glDrawArraysInstanced(GL_TRIANGLES, 0, 6, width * height);
 }
 

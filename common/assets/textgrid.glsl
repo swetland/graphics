@@ -3,41 +3,35 @@
 
 -- vertex
 
-layout(std140) uniform block3 {
-	mat4 MVP;
-	int cw;
-	int ch;
-};
+layout (location = 0) in vec4 aPosition;
+layout (location = 1) in vec2 aTexCoord;
+layout (location = 2) in uint aCharacter;
 
-layout (location = 0) in vec4 POSITION;
-layout (location = 1) in vec2 TEXCOORD;
-layout (location = 2) in uint CHARACTER;
-
-out vec2 vTEXCOORD;
+out vec2 vTexCoord;
 
 void main() {
-	vec4 pos = POSITION;
+	ivec2 cell = uTextGrid.xy;
+	ivec2 dims = uTextGrid.zw;
+	vec4 pos = aPosition;
 	int id = gl_InstanceID;
 
-	// shift unit rectangle to character cell rectangle
-	pos.xy += vec2(id % cw, (ch-1) - id / cw);
+	// translate cell to destination 
+	pos.x += (id % dims.x) * cell.x;
+	pos.y += uOrthoSize.y - ((id / dims.x) + 1) * cell.y;
 
 	// adjust unit texture coord to font cell rectangle
-	float tx = (CHARACTER % uint(16));
-	float ty = (CHARACTER / uint(16));
+	float tx = (aCharacter % uint(16));
+	float ty = (aCharacter / uint(16));
 
-	vTEXCOORD =
-		// scale to size of character in fonttexture
-		TEXCOORD * vec2(1.0/16.0,1.0/16.0)
-		// move to correct character
+	// translate texture coordinates to character position
+	vTexCoord = aTexCoord
 		+ vec2(tx/16.0,ty/16.0)
-		// offset to avoid cruft
-		+ vec2(1.0/256.0,1.0/256.0);
+		+ vec2(1.0/256.0,1.0/256.0); 
 
+	pos = uOrtho * pos;
 
-	pos = MVP * pos;
 	// discard via clipping
-	if (CHARACTER == uint(0)) pos.z = -1.1;
+	if (aCharacter == uint(0)) pos.z = -1.1;
 
 	gl_Position = pos;
 }
@@ -46,8 +40,8 @@ void main() {
 
 uniform sampler2D uTexture0;
 
-in vec2 vTEXCOORD;
+in vec2 vTexCoord;
 
 void main() {
-	gl_FragColor = texture2D(uTexture0, vTEXCOORD);
+	gl_FragColor = texture2D(uTexture0, vTexCoord);
 }

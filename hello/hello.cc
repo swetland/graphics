@@ -131,7 +131,7 @@ int TestApp::init(void) {
 	attr.init(layout, data, sizeof(layout) / sizeof(layout[0]));
 	ibuf.use();
 	
-	if (text.init(this, width/16, height/16))
+	if (text.init(16, 16, width/16, height/16))
 		return -1;
 
 	onResize();
@@ -201,6 +201,9 @@ void TestApp::render(void) {
 	object.mvp = model * view * proj;
 	object.mv = model * view;
 
+	scene.Ortho.setOrtho(0, width, 0, height, -1.0, 1.0);
+	scene.OrthoSize.set(width, height, 0, 0);
+	scene.TextGrid.set(16, 16, width / 16, height / 16);
 	scene.LightColor.set(1.0, 1.0, 1.0);
 	scene.LightPosition = view * vec4(0, 1, 0, 0);
 	scene.LightPosition.w = 0;
@@ -230,7 +233,7 @@ void TestApp::render(void) {
 
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
-	text.render(this);
+	text.render();
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
 }

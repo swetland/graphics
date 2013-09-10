@@ -16,10 +16,12 @@
 #ifndef _TEXTGRID_H_
 #define _TEXTGRID_H_
 
+#include "Effect.h"
+
 class TextGrid {
 public:
-	int init(App *a, int w, int h);
-	void render(App *a);
+	int init(int cellw, int cellh, int columns, int rows);
+	void render(void);
 	void clear(void);
 	void printf(int x, int y, const char *fmt, ...);
 
@@ -31,9 +33,7 @@ private:
 	UniformBuffer ubuf;
 	VertexBuffer vtx;
 	VertexBuffer cbuf;
-	PixelShader ps;
-	VertexShader vs;
-	Program pgm;
+	Effect *effect;
 	Texture2D texture;
 	VertexAttributes attr;
 
