@@ -18,6 +18,8 @@
 
 #include <string.h>
 
+#include "types.h"
+
 class stringptr {
 public:
 	stringptr() : str(""), len(0) {}
@@ -80,6 +82,7 @@ public:
 	operator const char *() { return str; }
 	operator stringptr () { return stringptr(str, len); }
 private:
+	DISALLOW_COPY_AND_ASSIGN(stackstring<N>);
 	int len;
 	int oops;
 	char str[N];
