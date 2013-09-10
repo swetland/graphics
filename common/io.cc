@@ -20,15 +20,16 @@
 #include <sys/stat.h>
 
 #include "util.h"
+#include "io.h"
 
-static char base_path[1024 + 8] = "";
+static char _base_path[1024 + 8] = "";
+static stringptr base_path;
 
 static const char *defaultsearch[] = {
 #ifdef _WIN32
 	"assets\\",
 #else
 	"assets/",
-	"../common/assets/",
 #endif
 	NULL,
 };
@@ -41,20 +42,21 @@ static const char *nosearch[] = {
 static const char **search = defaultsearch;
 
 void io_ignore_asset_paths(void) {
-	base_path[0] = 0;
+	_base_path[0] = 0;
+	base_path = stringptr(_base_path);
 	search = nosearch;
 }
-FILE *fopen_asset(const char *fn, const char *kind) {
-	char path[2048 + 64];
+
+FILE *io_fopen_asset(stringptr fn, const char *kind) {
+	stackstring<4096> path(base_path);
+	int len = path.length();
 	FILE *fp;
 	int i;
-	if (strlen(fn) > 1024)
-		return NULL;
 	for (i = 0; search[i]; i++) {
-		sprintf(path, "%s%s%s", base_path, search[i], fn);
+		path.trim(len).append(search[i]).append(fn);
 		fp = fopen(path, "rb");
 		if (fp != NULL) {
-			printx("Loading %s from '%s'...\n", kind, path);
+			printx("Loading %s from '%s'...\n", kind, path.cstr());
 			return fp;
 		}
 	}
@@ -66,39 +68,42 @@ FILE *fopen_asset(const char *fn, const char *kind) {
 #include <windows.h>
 void init_io(void) {
 	char *x;
-	GetModuleFileName(NULL, base_path, 1024);
-	base_path[1023] = 0;
-	x = strrchr(base_path, '\\');
+	GetModuleFileName(NULL, _base_path, 1024);
+	_base_path[1023] = 0;
+	x = strrchr(_base_path, '\\');
 	if (x)
 		x[1] = 0;
 	else
-		strcpy(base_path,".\\");
+		strcpy(_base_path,".\\");
+	base_path = stringptr(_basepath);
 }
 #else
 #include <unistd.h>
 void init_io(void) {
 	char *x;
 	int r;
-	r = readlink("/proc/self/exe", base_path, 1024);
+	r = readlink("/proc/self/exe", _base_path, 1024);
 	if (r < 0)
 		return;
-	x = strrchr(base_path, '/');
+	x = strrchr(_base_path, '/');
 	if (x)
 		x[1] = 0;
 	else
-		strcpy(base_path,"./");
+		strcpy(_base_path,"./");
+	base_path = stringptr(_base_path);
 }
 #endif
 
-int file_get_mtime(const char *fn) {
+int file_get_mtime(stringptr fn) {
 	struct stat s;
-	char buf[2048 + 64];
-	snprintf(buf, 1024, "%s%s%s", base_path, search[0], fn);
-	if (stat(buf, &s))
+	stackstring<4096> path(base_path);
+	path.append(search[0]).append(fn);
+	if (path.error())
+		return -1;
+	if (stat(path, &s))
 		return -1;
 	return s.st_mtime;
 }
-
 
 void vprintx(const char *fmt, va_list ap) {
 	char buf[128];

@@ -17,6 +17,7 @@
 
 #include "Model.h"
 
+#include "stringutils.h"
 #include "util.h"
 
 // idx, src, dst, count, offset, stride, divisor
@@ -33,23 +34,22 @@ void Model::render(void) {
 }
 
 int Model::init(const char *name) {
+	string128 fname(name);
+	int len = fname.length();
 	struct model *m;
 	VertexBuffer *data[] = {
 		&vbuf, &vbuf, &vbuf,
 	};
 
-	std::string mname(name);
-	std::string tname(name);
-	mname.append(".obj");
-	tname.append(".png");
-
-	if (!(m = load_wavefront_obj(mname.c_str())))
+	fname.append(".obj");
+	if (!(m = load_wavefront_obj(fname)))
 		return error("cannot load model");
 
 	printx("Object '%s' loaded. %d vertices, %d indices.\n",
 		name, m->vcount, m->icount);
 
-	texture.load(tname.c_str(), OPT_TEX2D_GEN_MIPMAP);
+	fname.trim(len).append(".png");
+	texture.load(fname, OPT_TEX2D_GEN_MIPMAP);
 
 	vbuf.load(m->vdata, 32 * m->vcount);
 	ibuf.load(m->idx, 2 * m->icount);

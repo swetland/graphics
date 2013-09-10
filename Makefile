@@ -22,7 +22,7 @@ SDLFLAGS := $(shell $(SDLCFG) --cflags)
 #SDLLIBS := $(shell $(SDLCFG) --static-libs)
 SDLLIBS := /work/sdl2/lib/libSDL2.a -lpthread -lrt -ldl
 
-HOST_CFLAGS := $(SDLFLAGS) -Wall -g -O2
+HOST_CFLAGS := $(SDLFLAGS) -Wall -g -O0
 HOST_CFLAGS += -std=c++0x
 HOST_CFLAGS += -Icommon
 HOST_CFLAGS += -Ithirdparty/freetype-2.5.0.1/include

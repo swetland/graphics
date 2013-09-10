@@ -18,13 +18,14 @@
 #include <string.h>
 
 #include "util.h"
+#include "io.h"
 
 void *load_file(const char *fn, unsigned *_sz) {
 	void *data = 0;
 	long sz;
 	FILE *fp;
 
-	if (!(fp = fopen_asset(fn, "file")))
+	if (!(fp = io_fopen_asset(fn, "file")))
 		goto exit;
 
 	if (fseek(fp, 0, SEEK_END))

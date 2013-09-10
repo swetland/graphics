@@ -20,6 +20,8 @@
 #include FT_GLYPH_H
 
 #include <util.h>
+#include <io.h>
+
 #include <texturefont.h>
 
 #include <algorithm>

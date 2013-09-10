@@ -21,6 +21,7 @@
 using std::vector;
 
 #include "util.h"
+#include "io.h"
 
 struct v3 {
 	float x;
@@ -51,7 +52,7 @@ struct obj *load_obj(const char *fn) {
 	FILE *fp;
 	struct obj *o = 0;
 
-	if (!(fp = fopen_asset(fn, "model")))
+	if (!(fp = io_fopen_asset(fn, "model")))
 		goto exit;
 
 	o = new(obj);

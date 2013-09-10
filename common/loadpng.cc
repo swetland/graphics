@@ -20,6 +20,7 @@
 #include <png.h>
 
 #include "util.h"
+#include "io.h"
 
 void *_load_png(const char *fn, unsigned *_width, unsigned *_height, int options) {
 	png_structp png;
@@ -31,7 +32,7 @@ void *_load_png(const char *fn, unsigned *_width, unsigned *_height, int options
 
 	ch = (options & OPT_PNG_GRAY) ? 1 : 4;
 
-	if ((fp = fopen_asset(fn, "image")) == NULL)
+	if ((fp = io_fopen_asset(fn, "image")) == NULL)
 		goto exit;
 
 	if (!(png = png_create_read_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0)))
