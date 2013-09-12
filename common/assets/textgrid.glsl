@@ -34,10 +34,10 @@ void main() {
 
 -- fragment
 
-uniform sampler2D uTexture0;
+uniform sampler2D sampler0;
 
 in vec2 vTexCoord;
 
 void main() {
-	gl_FragColor = texture2D(uTexture0, vTexCoord);
+	gl_FragColor = texture2D(sampler0, vTexCoord);
 }
