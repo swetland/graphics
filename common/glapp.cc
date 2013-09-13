@@ -85,14 +85,14 @@ void App::setOptions(int argc, char **argv) {
 			width = atoi(argv[0]);
 			height = atoi(x + 1);
 		} else {
-			fprintf(stderr,"unknown argument '%s'\n",argv[0]);
+			printx("unknown argument '%s'\n",argv[0]);
 		}
 		argv++;
 	}
 }
 
 static void dump_gl_params(void) {
-#define GGI(name) { int n = -1; glGetIntegerv(GL_##name, &n); fprintf(stderr, #name ": %d\n", n); }
+#define GGI(name) { int n = -1; glGetIntegerv(GL_##name, &n); printx(#name ": %d\n", n); }
 
 	GGI(MAX_TEXTURE_SIZE);
 	GGI(MAX_3D_TEXTURE_SIZE);
@@ -227,10 +227,10 @@ int App::start(void) {
 		minor--;
 	}
 	if (!glcontext) {
-		fprintf(stderr,"cannot obtain OpenGL 3.1+ context\n");
+		printx("cannot obtain OpenGL 3.1+ context\n");
 		exit(1);
 	} else {
-		fprintf(stderr,"using OpenGL 3.%d\n", minor);
+		printx("using OpenGL 3.%d\n", minor);
 		/* todo: verify extension availability */
 	}
 
@@ -245,14 +245,14 @@ int App::start(void) {
 			glEnable(GL_DEBUG_OUTPUT);
 			// glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 		} else {
-			fprintf(stderr,"warning: no glDebugMessageCallbackARB()\n");
+			printx("warning: no glDebugMessageCallbackARB()\n");
 		}
 	}
 
-	fprintf(stderr, "Vender: %s\n", glGetString(GL_VENDOR));
-	fprintf(stderr, "Renderer: %s\n", glGetString(GL_RENDERER));
-	fprintf(stderr, "GL Version: %s\n", glGetString(GL_VERSION));
-	fprintf(stderr, "GLSL Version: %s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
+	printx("Vender: %s\n", glGetString(GL_VENDOR));
+	printx("Renderer: %s\n", glGetString(GL_RENDERER));
+	printx("GL Version: %s\n", glGetString(GL_VERSION));
+	printx("GLSL Version: %s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
 
 	dump_gl_params();
 

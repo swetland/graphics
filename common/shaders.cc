@@ -34,7 +34,7 @@ static void dump_compile_error(unsigned id) {
 		memset(buf, 0, len);
 		glGetShaderInfoLog(id, len, &len, buf);
 		buf[len] = 0;
-		fprintf(stderr,"-- shader compiler error --\n%s\n", buf);
+		printx("-- shader compiler error --\n%s\n", buf);
 		free(buf);
 	}
 }
@@ -48,7 +48,7 @@ static void dump_link_error(unsigned id) {
 		memset(buf, 0, len);
 		glGetProgramInfoLog(id, len, &len, buf);
 		buf[len] = 0;
-		fprintf(stderr,"-- shader link error --\n%s\n", buf);
+		printx("-- shader link error --\n%s\n", buf);
 		free(buf);
 	}
 }
@@ -87,7 +87,7 @@ int Program::link(VertexShader *vs, GeometryShader *gs, PixelShader *ps) {
 	for (n = 0; n < sizeof(_blocknames) / sizeof(_blocknames[0]); n++) {
 		unsigned idx = glGetUniformBlockIndex(id, _blocknames[n]);
 		if (idx != GL_INVALID_INDEX) {
-			fprintf(stderr,"found %s @ %d\n", _blocknames[n], idx);
+			printx("found %s @ %d\n", _blocknames[n], idx);
 			glUniformBlockBinding(id, idx, n);
 		}
 	}
@@ -102,7 +102,7 @@ void Program::bind() {
 	for (n = 0; n < sizeof(_samplernames) / sizeof(_samplernames[0]); n++) {
 		r = glGetUniformLocation(id, _samplernames[n]);
 		if (r != -1) {
-			fprintf(stderr,"found %s @ %d\n", _samplernames[n], r);
+			printx("found %s @ %d\n", _samplernames[n], r);
 			glUniform1i(r, n);
 		}
 	}
