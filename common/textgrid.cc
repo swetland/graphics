@@ -26,7 +26,7 @@
 static VertexAttrDesc layout[] = {
 	{ 0, SRC_FLOAT, DST_FLOAT,   2, 0, 16, 0 },
 	{ 1, SRC_FLOAT, DST_FLOAT,   2, 8, 16, 0 },
-	{ 2, SRC_UINT8, DST_INTEGER, 1, 0,  1, 1 },
+	{ 2, SRC_UINT8, DST_INTEGER, 4, 0,  4, 1 },
 };
 
 static float unit_box_2d[] = {
@@ -47,7 +47,7 @@ void TextGrid::resize(int columns, int rows) {
 
 	if (grid)
 		delete[] grid;
-	grid = new unsigned char[width * height];
+	grid = new unsigned[width * height * 4];
 	clear();
 }
 
@@ -76,16 +76,21 @@ int TextGrid::init(int cellw, int cellh, int columns, int rows) {
 		return -1;
 
 	vtx.load(box_2d, sizeof(box_2d));
-	cbuf.load(grid, width * height);
+	cbuf.load(grid, width * height * sizeof(unsigned));
 	attr.init(layout, data, sizeof(layout) / sizeof(layout[0]));
 
+	color = 0xFFFFFF00;
 	return 0;
+}
+
+void TextGrid::setColor(unsigned rgba) {
+	color = rgba << 8;
 }
 
 void TextGrid::render(void) {
 	if (dirty) {
 		dirty = 0;
-		cbuf.load(grid, width * height);
+		cbuf.load(grid, width * height * sizeof(unsigned));
 	}
 	attr.use();
 	texture.use(0);
@@ -94,7 +99,7 @@ void TextGrid::render(void) {
 }
 
 void TextGrid::clear(void) {
-	memset(grid, 0, width * height);
+	memset(grid, 0, width * height * sizeof(unsigned));
 }
 
 void TextGrid::printf(int x, int y, const char *fmt, ...) {
@@ -107,6 +112,8 @@ void TextGrid::printf(int x, int y, const char *fmt, ...) {
 	buf[127] = 0;
 	if (len > 127) len = 127;
 	if (y < 0) y = height + y;
-	memcpy(grid + y * width + x, buf, len); // TODO rangecheck
+	for (int n = 0; n < len; n++) {
+		grid[y * width + x + n] = buf[n] | color;
+	}
 	dirty = 1;
 }

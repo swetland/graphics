@@ -25,11 +25,13 @@ public:
 	void render(void);
 	void clear(void);
 	void printf(int x, int y, const char *fmt, ...);
+	void setColor(unsigned rgba);
 
 private:
 	int width;
 	int height;
 	int dirty;
+	unsigned color;
 
 	UniformBuffer ubuf;
 	VertexBuffer vtx;
@@ -38,7 +40,7 @@ private:
 	Texture2D texture;
 	VertexAttributes attr;
 
-	unsigned char *grid;
+	unsigned *grid;
 };
 
 #endif
