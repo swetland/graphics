@@ -10,6 +10,8 @@ GLXTN PFNGLACTIVETEXTUREPROC glActiveTexture;
 GLXTN PFNGLATTACHSHADERPROC glAttachShader;
 GLXTN PFNGLBINDBUFFERPROC glBindBuffer;
 GLXTN PFNGLBINDBUFFERBASEPROC glBindBufferBase;
+GLXTN PFNGLBINDFRAMEBUFFERPROC glBindFramebuffer;
+GLXTN PFNGLBINDRENDERBUFFERPROC glBindRenderbuffer;
 GLXTN PFNGLBINDTEXTUREPROC glBindTexture;
 GLXTN PFNGLBINDVERTEXARRAYPROC glBindVertexArray;
 GLXTN PFNGLBLENDFUNCPROC glBlendFunc;
@@ -32,8 +34,11 @@ GLXTN PFNGLDRAWELEMENTSINSTANCEDPROC glDrawElementsInstanced;
 GLXTN PFNGLENABLEPROC glEnable;
 GLXTN PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
 GLXTN PFNGLFLUSHPROC glFlush;
+GLXTN PFNGLFRAMEBUFFERTEXTURE2DPROC glFramebufferTexture2D;
 GLXTN PFNGLGENBUFFERSPROC glGenBuffers;
 GLXTN PFNGLGENERATEMIPMAPPROC glGenerateMipmap;
+GLXTN PFNGLGENFRAMEBUFFERSPROC glGenFramebuffers;
+GLXTN PFNGLGENRENDERBUFFERSPROC glGenRenderbuffers;
 GLXTN PFNGLGENTEXTURESPROC glGenTextures;
 GLXTN PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
 GLXTN PFNGLGETATTRIBLOCATIONPROC glGetAttribLocation;
@@ -46,6 +51,7 @@ GLXTN PFNGLGETSTRINGPROC glGetString;
 GLXTN PFNGLGETUNIFORMBLOCKINDEXPROC glGetUniformBlockIndex;
 GLXTN PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
 GLXTN PFNGLLINKPROGRAMPROC glLinkProgram;
+GLXTN PFNGLRENDERBUFFERSTORAGEPROC glRenderbufferStorage;
 GLXTN PFNGLSHADERSOURCEPROC glShaderSource;
 GLXTN PFNGLTEXBUFFERPROC glTexBuffer;
 GLXTN PFNGLTEXIMAGE2DPROC glTexImage2D;
@@ -69,6 +75,8 @@ struct {
 	__GLFN__(glAttachShader),
 	__GLFN__(glBindBuffer),
 	__GLFN__(glBindBufferBase),
+	__GLFN__(glBindFramebuffer),
+	__GLFN__(glBindRenderbuffer),
 	__GLFN__(glBindTexture),
 	__GLFN__(glBindVertexArray),
 	__GLFN__(glBlendFunc),
@@ -91,8 +99,11 @@ struct {
 	__GLFN__(glEnable),
 	__GLFN__(glEnableVertexAttribArray),
 	__GLFN__(glFlush),
+	__GLFN__(glFramebufferTexture2D),
 	__GLFN__(glGenBuffers),
 	__GLFN__(glGenerateMipmap),
+	__GLFN__(glGenFramebuffers),
+	__GLFN__(glGenRenderbuffers),
 	__GLFN__(glGenTextures),
 	__GLFN__(glGenVertexArrays),
 	__GLFN__(glGetAttribLocation),
@@ -105,6 +116,7 @@ struct {
 	__GLFN__(glGetUniformBlockIndex),
 	__GLFN__(glGetUniformLocation),
 	__GLFN__(glLinkProgram),
+	__GLFN__(glRenderbufferStorage),
 	__GLFN__(glShaderSource),
 	__GLFN__(glTexBuffer),
 	__GLFN__(glTexImage2D),

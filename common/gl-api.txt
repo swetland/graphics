@@ -2,6 +2,8 @@ glActiveTexture
 glAttachShader
 glBindBuffer
 glBindBufferBase
+glBindFramebuffer
+glBindRenderbuffer
 glBindTexture
 glBindVertexArray
 glBlendFunc
@@ -24,8 +26,11 @@ glDrawElementsInstanced
 glEnable
 glEnableVertexAttribArray
 glFlush
+glFramebufferTexture2D
 glGenBuffers
 glGenerateMipmap
+glGenFramebuffers
+glGenRenderbuffers
 glGenTextures
 glGenVertexArrays
 glGetAttribLocation
@@ -38,6 +43,7 @@ glGetString
 glGetUniformBlockIndex
 glGetUniformLocation
 glLinkProgram
+glRenderbufferStorage
 glShaderSource
 glTexBuffer
 glTexImage2D
