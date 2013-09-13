@@ -97,6 +97,7 @@ struct Texture2D {
 	~Texture2D() { if (id) { glDeleteTextures(1, &id); } };
 	int load(const char *fn, int options);
 	int load(void *data, unsigned w, unsigned h, int options);
+	int createRGBA(unsigned w, unsigned h);
 	void use(unsigned index) {
 		glActiveTexture(GL_TEXTURE0 + index);
 		glBindTexture(GL_TEXTURE_2D, id);

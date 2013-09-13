@@ -136,3 +136,16 @@ int Texture2D::load(void *data, unsigned w, unsigned h, int options) {
 	return 0;
 }
 
+int Texture2D::createRGBA(unsigned w, unsigned h) {
+	if (id)
+		glDeleteTextures(1, &id);
+	glGenTextures(1, &id);
+	glActiveTexture(GL_TEXTURE0 + 15);
+	glBindTexture(GL_TEXTURE_2D, id);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	width = w;
+	height = h;
+	return 0;
+}
