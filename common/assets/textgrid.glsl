@@ -14,7 +14,7 @@ void main() {
 	ivec2 cell = uTextGrid.xy;
 	ivec2 dims = uTextGrid.zw;
 	vec4 pos = vec4(aPosition,0,1);
-	uint id = gl_InstanceID;
+	int id = gl_InstanceID;
 
 	// translate cell to destination 
 	pos.xy += vec2(id % dims.x, id / dims.x) * cell;
@@ -24,7 +24,7 @@ void main() {
 
 	// translate texture coordinates to character position
 	vTexCoord = aTexCoord + tadj + vec2(1.0/256.0,1.0/256.0); 
-	vColor = aCharacter.yzw / 255.0;
+	vColor = vec3(aCharacter.yzw) / 255.0;
 	pos = uOrtho * pos;
 
 	// discard via clipping
