@@ -21,7 +21,9 @@ GLXTN PFNGLCOMPILESHADERPROC glCompileShader;
 GLXTN PFNGLCREATEPROGRAMPROC glCreateProgram;
 GLXTN PFNGLCREATESHADERPROC glCreateShader;
 GLXTN PFNGLDELETEBUFFERSPROC glDeleteBuffers;
+GLXTN PFNGLDELETEFRAMEBUFFERSPROC glDeleteFramebuffers;
 GLXTN PFNGLDELETEPROGRAMPROC glDeleteProgram;
+GLXTN PFNGLDELETERENDERBUFFERSPROC glDeleteRenderbuffers;
 GLXTN PFNGLDELETESHADERPROC glDeleteShader;
 GLXTN PFNGLDELETETEXTURESPROC glDeleteTextures;
 GLXTN PFNGLDELETEVERTEXARRAYSPROC glDeleteVertexArrays;
@@ -33,7 +35,9 @@ GLXTN PFNGLDRAWELEMENTSPROC glDrawElements;
 GLXTN PFNGLDRAWELEMENTSINSTANCEDPROC glDrawElementsInstanced;
 GLXTN PFNGLENABLEPROC glEnable;
 GLXTN PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
+GLXTN PFNGLFINISHPROC glFinish;
 GLXTN PFNGLFLUSHPROC glFlush;
+GLXTN PFNGLFRAMEBUFFERRENDERBUFFERPROC glFramebufferRenderbuffer;
 GLXTN PFNGLFRAMEBUFFERTEXTURE2DPROC glFramebufferTexture2D;
 GLXTN PFNGLGENBUFFERSPROC glGenBuffers;
 GLXTN PFNGLGENERATEMIPMAPPROC glGenerateMipmap;
@@ -86,7 +90,9 @@ struct {
 	__GLFN__(glCreateProgram),
 	__GLFN__(glCreateShader),
 	__GLFN__(glDeleteBuffers),
+	__GLFN__(glDeleteFramebuffers),
 	__GLFN__(glDeleteProgram),
+	__GLFN__(glDeleteRenderbuffers),
 	__GLFN__(glDeleteShader),
 	__GLFN__(glDeleteTextures),
 	__GLFN__(glDeleteVertexArrays),
@@ -98,7 +104,9 @@ struct {
 	__GLFN__(glDrawElementsInstanced),
 	__GLFN__(glEnable),
 	__GLFN__(glEnableVertexAttribArray),
+	__GLFN__(glFinish),
 	__GLFN__(glFlush),
+	__GLFN__(glFramebufferRenderbuffer),
 	__GLFN__(glFramebufferTexture2D),
 	__GLFN__(glGenBuffers),
 	__GLFN__(glGenerateMipmap),
