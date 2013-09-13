@@ -28,7 +28,7 @@ void main() {
 	pos = uOrtho * pos;
 
 	// discard via clipping
-	if (aCharacter == uint(0)) pos.z = -1.1;
+	if (aCharacter.x == uint(0)) pos.z = -1.1;
 
 	gl_Position = pos;
 }
