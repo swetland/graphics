@@ -165,6 +165,9 @@ void TestApp::onKeyUp(unsigned code) {
 void TestApp::render(void) {
 	int update = 0;
 
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_DEPTH_TEST);
+
 	if (mouseBTN & 1) {
 		float dx = ((float) mouseDX) / 400.0f;
 		float dy = ((float) mouseDY) / 400.0f;
@@ -236,7 +239,6 @@ void TestApp::render(void) {
 	glEnable(GL_BLEND);
 	text.render();
 	glDisable(GL_BLEND);
-	glEnable(GL_DEPTH_TEST);
 }
 
 App *createApp(void) {
