@@ -42,6 +42,7 @@ GLXTN PFNGLFRAMEBUFFERTEXTURE2DPROC glFramebufferTexture2D;
 GLXTN PFNGLGENBUFFERSPROC glGenBuffers;
 GLXTN PFNGLGENERATEMIPMAPPROC glGenerateMipmap;
 GLXTN PFNGLGENFRAMEBUFFERSPROC glGenFramebuffers;
+GLXTN PFNGLGENQUERIESPROC glGenQueries;
 GLXTN PFNGLGENRENDERBUFFERSPROC glGenRenderbuffers;
 GLXTN PFNGLGENTEXTURESPROC glGenTextures;
 GLXTN PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
@@ -49,12 +50,17 @@ GLXTN PFNGLGETATTRIBLOCATIONPROC glGetAttribLocation;
 GLXTN PFNGLGETINTEGERVPROC glGetIntegerv;
 GLXTN PFNGLGETPROGRAMINFOLOGPROC glGetProgramInfoLog;
 GLXTN PFNGLGETPROGRAMIVPROC glGetProgramiv;
+GLXTN PFNGLGETQUERYOBJECTIVPROC glGetQueryObjectiv;
+GLXTN PFNGLGETQUERYOBJECTI64VPROC glGetQueryObjecti64v;
+GLXTN PFNGLGETQUERYOBJECTUIVPROC glGetQueryObjectuiv;
+GLXTN PFNGLGETQUERYOBJECTUI64VPROC glGetQueryObjectui64v;
 GLXTN PFNGLGETSHADERINFOLOGPROC glGetShaderInfoLog;
 GLXTN PFNGLGETSHADERIVPROC glGetShaderiv;
 GLXTN PFNGLGETSTRINGPROC glGetString;
 GLXTN PFNGLGETUNIFORMBLOCKINDEXPROC glGetUniformBlockIndex;
 GLXTN PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
 GLXTN PFNGLLINKPROGRAMPROC glLinkProgram;
+GLXTN PFNGLQUERYCOUNTERPROC glQueryCounter;
 GLXTN PFNGLRENDERBUFFERSTORAGEPROC glRenderbufferStorage;
 GLXTN PFNGLSHADERSOURCEPROC glShaderSource;
 GLXTN PFNGLTEXBUFFERPROC glTexBuffer;
@@ -111,6 +117,7 @@ struct {
 	__GLFN__(glGenBuffers),
 	__GLFN__(glGenerateMipmap),
 	__GLFN__(glGenFramebuffers),
+	__GLFN__(glGenQueries),
 	__GLFN__(glGenRenderbuffers),
 	__GLFN__(glGenTextures),
 	__GLFN__(glGenVertexArrays),
@@ -118,12 +125,17 @@ struct {
 	__GLFN__(glGetIntegerv),
 	__GLFN__(glGetProgramInfoLog),
 	__GLFN__(glGetProgramiv),
+	__GLFN__(glGetQueryObjectiv),
+	__GLFN__(glGetQueryObjecti64v),
+	__GLFN__(glGetQueryObjectuiv),
+	__GLFN__(glGetQueryObjectui64v),
 	__GLFN__(glGetShaderInfoLog),
 	__GLFN__(glGetShaderiv),
 	__GLFN__(glGetString),
 	__GLFN__(glGetUniformBlockIndex),
 	__GLFN__(glGetUniformLocation),
 	__GLFN__(glLinkProgram),
+	__GLFN__(glQueryCounter),
 	__GLFN__(glRenderbufferStorage),
 	__GLFN__(glShaderSource),
 	__GLFN__(glTexBuffer),

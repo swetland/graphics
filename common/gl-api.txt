@@ -34,6 +34,7 @@ glFramebufferTexture2D
 glGenBuffers
 glGenerateMipmap
 glGenFramebuffers
+glGenQueries
 glGenRenderbuffers
 glGenTextures
 glGenVertexArrays
@@ -41,12 +42,17 @@ glGetAttribLocation
 glGetIntegerv
 glGetProgramInfoLog
 glGetProgramiv
+glGetQueryObjectiv
+glGetQueryObjecti64v
+glGetQueryObjectuiv
+glGetQueryObjectui64v
 glGetShaderInfoLog
 glGetShaderiv
 glGetString
 glGetUniformBlockIndex
 glGetUniformLocation
 glLinkProgram
+glQueryCounter
 glRenderbufferStorage
 glShaderSource
 glTexBuffer
