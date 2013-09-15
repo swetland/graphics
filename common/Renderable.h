@@ -22,6 +22,10 @@ class Renderable {
 public:
 	Renderable(void) {};
 	virtual void render(void) = 0;
+
+	static Renderable* createXZgrid(float size, unsigned steps);
+	static Renderable* createFullscreenQuad(void);
+
 private:
 	DISALLOW_COPY_AND_ASSIGN(Renderable);
 };
