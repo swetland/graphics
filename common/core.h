@@ -141,5 +141,24 @@ struct VertexAttributes {
 	void use(void) { glBindVertexArray(vao); };
 };
 
+class FrameBuffer {
+public:
+	FrameBuffer() : id(0), txid(0), depth(0) {}
+	void init(unsigned w, unsigned h, unsigned _depth = 1);
+	void useTexture(unsigned index) {
+		glActiveTexture(GL_TEXTURE0 + index);
+		glBindTexture(GL_TEXTURE_RECTANGLE, txid);
+	}
+	void use(void) {
+		glBindFramebuffer(GL_FRAMEBUFFER, id);
+		glViewport(0, 0, width, height);
+	}
+private:
+	u32 id;
+	u32 txid;
+	u32 depth;
+	u32 width;
+	u32 height;
+};
 #endif
 
