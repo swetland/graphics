@@ -16,102 +16,92 @@
 #include "app.h"
 #include "matrix.h"
 #include "shared.h"
+#include "util.h"
 
 #include "texturefont.h"
 
 #include "Model.h"
 #include "Effect.h"
+#include "Renderable.h"
 
-struct Grid {
-	Grid(float size, unsigned steps) {
-		static VertexAttrDesc layout[] = {
-			{ 0, SRC_FLOAT, DST_FLOAT, 3, 0, 12, 0 },
-		};
-		count = (steps + 1) * 4;
-		VertexBuffer *vb = &buf;
-		float x, z;
- 		float *varr = (float*) malloc(sizeof(float) * 3 * count);
-		float *vtx = varr;
-		float min = -(size / 2.0);
-		float max = (size / 2.0) + 0.0001;
-		float step = size / ((float) steps);
-		for (x = min; x < max; x += step) {
-			vtx[0] = x;
-			vtx[1] = 0.0;
-			vtx[2] = min;
-			vtx[3] = x;
-			vtx[4] = 0.0;
-			vtx[5] = max;
-			vtx += 6;
-		}
-		for (z = min; z < max; z += step) {
-			vtx[0] = min;
-			vtx[1] = 0.0;
-			vtx[2] = z;
-			vtx[3] = max;
-			vtx[4] = 0.0;
-			vtx[5] = z;
-			vtx += 6;
-		}
-		buf.load(varr, count * 3 * sizeof(float));
-		attr.init(layout, &vb, 1);
-	}
-	void render(void) {
-		attr.use();
-		glDrawArrays(GL_LINES, 0, count);
-	}
-	VertexBuffer buf;
-	VertexAttributes attr;
-	unsigned count;
-};
-		
 class TestApp : public App {
 public:
 	TestApp();
 	int init(void);
 	void render(void);
-
+	void onKeyUp(unsigned code);
 private:
 	float r;
 
 	Model *m;
 	Effect *e;
 
-	Grid *g;
-	Effect *ge;
+	Renderable *grid;
+	Effect *grid_effect;
 
 	UniformBuffer obj, mat, scn;
 	mat4 proj;
 
 	TextureFont font;
+
+	Renderable *fullscreen;
+	Effect *copy;
+
+	Effect *vblur;
+	Effect *hblur;
+	FrameBuffer fb0;
+	FrameBuffer fb1;
+
+	int postproc;
 };
 
 TestApp::TestApp() : App(), r(0.0) { }
 
 int TestApp::init(void) {
+	/* resources for scene */
 	if (!(m = Model::load("unitcubeoid")))
 		return error("cannot load cube object");
 
 	if (!(e = Effect::load("simple+SPECULAR")))
 		return error("could not load simple effect");
 
-	g = new Grid(10.0, 20);
-	ge = Effect::load("flat");
-		
 	proj.setPerspective(D2R(90.0), width / (float) height, 0.1f, 250.0f);
 
 	font.init("orbitron-bold-72");
+
+	/* resources for post-processing */
+	hblur = Effect::load("rectangle+HBLUR");
+	vblur = Effect::load("rectangle+VBLUR");
+	copy = Effect::load("rectangle+COPY+SKIPLINES");
+
+	fb0.init(width, height);
+	fb1.init(width, height);
+
+	fullscreen = Renderable::createFullscreenQuad();
+	grid = Renderable::createXZgrid(10.0, 20);
+	grid_effect = Effect::load("flat");
+
+	postproc = 0;
 	return 0;
 }
 
-int frame = 0;
+void TestApp::onKeyUp(unsigned code) {
+	if (code == SDL_SCANCODE_SPACE)
+		postproc = !postproc;
+}
+
 void TestApp::render(void) {
 	struct ubScene scene;
 	struct ubObject object;
 	struct ubMaterial material;
 	mat4 model, view, tmp;
 
-	frame ++;
+	/* if we're applying post-processing, we render to an offscreen buffer */
+	if (postproc)
+		fb0.use();
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_DEPTH_TEST);
 
 	r += 1.0;
 	if (r > 360.0) r = 0.0;
@@ -123,8 +113,8 @@ void TestApp::render(void) {
 	object.mv = model * view;
 	obj.load(&object, sizeof(object));
 	obj.use(U_OBJECT);
-	ge->apply();
-	g->render();
+	grid_effect->apply();
+	grid->render();
 
 	scene.Ortho.setOrtho(0, width, height, 0, -1.0, 1.0);
 	scene.LightColor.set(1.0, 1.0, 1.0);
@@ -167,6 +157,29 @@ void TestApp::render(void) {
 	font.clear();
 	font.puts(100, 100, "Hello World!");
 	font.render();
+
+	if (postproc) {
+		glDisable(GL_DEPTH_TEST);
+
+		fb1.use();
+		glClear(GL_COLOR_BUFFER_BIT);
+		vblur->apply();
+		fb0.useTexture(0);
+		fullscreen->render();
+
+		fb0.use();
+		glClear(GL_COLOR_BUFFER_BIT);
+		hblur->apply();
+		fb1.useTexture(0);
+		fullscreen->render();
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glViewport(0, 0, width, height);
+		glClear(GL_COLOR_BUFFER_BIT);
+		copy->apply();
+		fb0.useTexture(0);
+		fullscreen->render();
+	}
 }
 
 App *createApp(void) {
