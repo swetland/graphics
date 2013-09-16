@@ -20,6 +20,7 @@
 #include "matrix.h"
 
 #include "Effect.h"
+#include "Renderable.h"
 
 struct CharInfo {
 	// location in texture
@@ -57,29 +58,46 @@ struct CharData {
 };
 
 class TextureFont {
+	friend class Text;
 public:
-	int init(const char *fontname);
-	void render(void);
-	void clear(void);
-	void printf(int x, int y, const char *fmt, ...);
-	void puts(int x, int y, const char *s);
-	void setColor(unsigned rgba);
 	void measure(const char *s, unsigned *width, unsigned *height);
 	int getMaxHeight(void) { return header->height_max; }
 	int getMaxAscent(void) { return header->ascent_max; }
+	static TextureFont *load(const char *fontname);
+
 private:
+	TextureFont(void) {}
+	DISALLOW_COPY_AND_ASSIGN(TextureFont);
+	int init(const char *fontname);
+
 	FontInfo *header;
 	CharInfo *info;
 	unsigned first;
 	unsigned last;
 
 	Effect *effect;
-	VertexBuffer vtx;
 	VertexBuffer cbuf;
-	VertexAttributes attr;
 	Texture2D glyphs;
-
 	unsigned tbid;
+};
+
+class Text : public Renderable {
+public:
+	void printf(int x, int y, const char *fmt, ...);
+	void puts(int x, int y, const char *s);
+	void setColor(unsigned rgba);
+	void render(void);
+	void clear(void);
+	static Text* create(TextureFont *_font);	
+protected:
+	Text(void) : Renderable() {};
+private:
+	DISALLOW_COPY_AND_ASSIGN(Text);
+
+	TextureFont *font;
+
+	VertexBuffer vtx;
+	VertexAttributes attr;
 
 	CharData *data;
 	CharData *next;

@@ -42,7 +42,8 @@ private:
 	UniformBuffer obj, mat, scn;
 	mat4 proj;
 
-	TextureFont font;
+	TextureFont *font;
+	Text *text;
 
 	Renderable *fullscreen;
 	Effect *copy;
@@ -67,7 +68,10 @@ int TestApp::init(void) {
 
 	proj.setPerspective(D2R(90.0), width / (float) height, 0.1f, 250.0f);
 
-	font.init("orbitron-bold-72");
+	if (!(font = TextureFont::load("orbitron-bold-72")))
+		return error("cannot load font");
+
+	text = Text::create(font);
 
 	/* resources for post-processing */
 	hblur = Effect::load("rectangle+HBLUR");
@@ -154,9 +158,9 @@ void TestApp::render(void) {
 	e->apply();
 	m->render();
 
-	font.clear();
-	font.puts(100, 100, "Hello World!");
-	font.render();
+	text->clear();
+	text->puts(100, 100, "Hello World!");
+	text->render();
 
 	if (postproc) {
 		glDisable(GL_DEPTH_TEST);

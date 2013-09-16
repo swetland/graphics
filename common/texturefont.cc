@@ -29,24 +29,21 @@
  * - explore different vtx formats (int vs float vs short, etc)
 */
 
-// idx, src, dst, count, offset, stride, divisor
-static VertexAttrDesc layout[] = {
-	{ 0, SRC_INT32, DST_INTEGER, 4, 0, 16, 6 },
-};
+TextureFont* TextureFont::load(const char *fontname) {
+	TextureFont *f = new TextureFont();
+	if (f->init(fontname)) {
+		delete f;
+		return nullptr;
+	}
+	return f;
+}
 
 int TextureFont::init(const char *fontname) {
-	VertexBuffer *vdata[] = { &vtx };
 	char tmp[256];
 	float *cdata, *cp; 
 	float dim, adj;
 	unsigned sz;
 	header = NULL;
-	max = 128;
-	count = 0;
-	data = (CharData *) malloc(sizeof(CharData) * max);
-	if (!data)
-		goto fail;
-	next = data;
 
 	sprintf(tmp, "%s.font.png", fontname);
 	if (glyphs.load(tmp, OPT_TEX2D_GRAY))
@@ -112,59 +109,19 @@ int TextureFont::init(const char *fontname) {
 		*cp++ = float(info[n].y) / dim + adj;
 	}
 	cbuf.load(cdata, sizeof(float) * 4 * 6 * header->count);
-	vtx.load(data, sizeof(CharData) * max);
-
-	attr.init(layout, vdata, sizeof(layout) / sizeof(layout[0]));
-	dirty = 0;
 
 	glGenTextures(1, &tbid);
 	glActiveTexture(GL_TEXTURE0 + 15);
 	glBindTexture(GL_TEXTURE_BUFFER, tbid);
 	glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, cbuf.id);
-
-	color = RGBA(255,255,255,0);
 	return 0;
 fail:
-	if (data) {
-		free(data);
-		data = NULL;
-	}
 	if (header) {
 		free(header);
 		header = NULL;
 	}
 
 	return 0;
-}
-
-void TextureFont::clear(void) {
-	next = data;
-	count = 0;
-}
-
-void TextureFont::setColor(unsigned rgba) {
-	color = rgba;
-}
-
-void TextureFont::render(void) {
-	if (count == 0)
-		return;
-
-	if (dirty) {
-		vtx.load(data, sizeof(CharData) * count);
-		dirty = 0;
-	}
-
-	effect->apply();
-	attr.use();
-	glyphs.use(1);
-	glActiveTexture(GL_TEXTURE0 + 0);
-	glBindTexture(GL_TEXTURE_BUFFER, tbid);
-	glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, cbuf.id);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDrawArraysInstanced(GL_TRIANGLES, 0, 6, count * 6);
-	glDisable(GL_BLEND);
 }
 
 void TextureFont::measure(const char *s, unsigned *width, unsigned *height) {
@@ -178,7 +135,6 @@ void TextureFont::measure(const char *s, unsigned *width, unsigned *height) {
 			continue;
 		n -= first;
 		unsigned ch = info[n].h;
-		unsigned cw = info[n].w;
 		if (ch > h)
 			h = ch;
 		w += info[n].advance;
@@ -187,25 +143,77 @@ void TextureFont::measure(const char *s, unsigned *width, unsigned *height) {
 	*height = h;
 }
 
-void TextureFont::puts(int x, int y, const char *s) {
+// idx, src, dst, count, offset, stride, divisor
+static VertexAttrDesc layout[] = {
+	{ 0, SRC_INT32, DST_INTEGER, 4, 0, 16, 6 },
+};
+
+Text* Text::create(TextureFont *font) {
+	Text *t = new Text();
+	VertexBuffer *vdata[] = { &t->vtx };
+	t->font = font;
+	t->max = 128;
+	t->count = 0;
+	t->data = (CharData*) malloc(sizeof(CharData) * t->max);
+	t->next = t->data;
+	t->color = RGBA(255,255,255,255);
+	t->dirty = 0;
+	
+	t->vtx.load(t->data, sizeof(CharData) * t->max);
+	t->attr.init(layout, vdata, sizeof(layout) / sizeof(layout[0]));
+
+	return t;
+};
+
+void Text::clear(void) {
+	next = data;
+	count = 0;
+	dirty = 1;
+}
+
+void Text::setColor(unsigned rgba) {
+	color = rgba;
+}
+
+void Text::render(void) {
+	if (count == 0)
+		return;
+
+	if (dirty) {
+		vtx.load(data, sizeof(CharData) * count);
+		dirty = 0;
+	}
+
+	font->effect->apply();
+	font->glyphs.use(1);
+	attr.use();
+	glActiveTexture(GL_TEXTURE0 + 0);
+	glBindTexture(GL_TEXTURE_BUFFER, font->tbid);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDrawArraysInstanced(GL_TRIANGLES, 0, 6, count * 6);
+	glDisable(GL_BLEND);
+}
+
+void Text::puts(int x, int y, const char *s) {
 	while (count < max) {
 		unsigned n = *s++;
 		if (n == 0)
 			break;
-		if ((n < first) || (n > last))
+		if ((n < font->first) || (n > font->last))
 			continue;
-		n -= first;
-		data[count].x = x + info[n].dx;
-		data[count].y = y - info[n].dy;
+		n -= font->first;
+		data[count].x = x + font->info[n].dx;
+		data[count].y = y - font->info[n].dy;
 		data[count].id = n * 6;
 		data[count].rgba = color & 0xFFFFFF; // strip alpha
 		count++;
-		x += info[n].advance;
+		x += font->info[n].advance;
 	}
 	dirty = 1;
 }
 
-void TextureFont::printf(int x, int y, const char *fmt, ...) {
+void Text::printf(int x, int y, const char *fmt, ...) {
 	char buf[128];
 	int len;
 	va_list ap;
