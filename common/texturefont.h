@@ -65,6 +65,8 @@ public:
 	void puts(int x, int y, const char *s);
 	void setColor(unsigned rgba);
 	void measure(const char *s, unsigned *width, unsigned *height);
+	int getMaxHeight(void) { return header->height_max; }
+	int getMaxAscent(void) { return header->ascent_max; }
 private:
 	FontInfo *header;
 	CharInfo *info;

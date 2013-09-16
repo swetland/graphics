@@ -181,9 +181,7 @@ void TextureFont::measure(const char *s, unsigned *width, unsigned *height) {
 		unsigned cw = info[n].w;
 		if (ch > h)
 			h = ch;
-		w += cw;
-		if (*s)
-			w += info[n].advance;
+		w += info[n].advance;
 	}
 	*width = w;
 	*height = h;
