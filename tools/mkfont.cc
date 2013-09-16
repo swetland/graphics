@@ -119,6 +119,11 @@ retry:
 	nx = ny = 1;
 	rh = 0;
 
+	int ascent, descent;
+	int ascent_max = 0;
+	int descent_max = 0;
+	int height_max = 0;
+
 	printf("%dx%d texture...\n", max, max);
 	for (i = 0; i < (LAST - FIRST); i++) {
 		n = list[i].c;
@@ -151,6 +156,22 @@ retry:
 		info[n].dx = bb.xMin;
 		info[n].dy = bb.yMin;
 		info[n].advance = face->glyph->advance.x >> 6;
+
+		if (bb.yMin < 0) {
+			descent = -bb.yMin;
+		} else {
+			descent = 0;
+		}
+		ascent = h + bb.yMin;
+		if (ascent < 0)
+			ascent = 0;
+		if (ascent > ascent_max)
+			ascent_max = ascent;
+		if (descent > descent_max)
+			descent_max = descent;
+		if ((ascent + descent) > height_max)
+			height_max = ascent + descent;
+		
 		FT_Outline_Translate(&face->glyph->outline, nx * 64 + tx * 64, ny * 64 + ty * 64);
 		FT_Outline_Get_Bitmap(ftl, &face->glyph->outline, &bm);
 		nx += w;
@@ -162,10 +183,13 @@ retry:
 	sprintf(tmp, "%s.png", argv[3]);
 	save_png_gray(tmp, bitmap->buffer, bitmap->width, bitmap->rows);
 	FontInfo header;
+	memset(&header, 0, sizeof(header));
 	header.magic = TEXTUREFONT_MAGIC;
 	header.first = FIRST;
 	header.count = LAST - FIRST;
-	header.unused = 0;
+	header.ascent_max = ascent_max;
+	header.descent_max = descent_max;
+	header.height_max = height_max;
 
 	sprintf(tmp, "%s.dat", argv[3]);
 	FILE *fp = fopen(tmp, "wb");

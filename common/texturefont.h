@@ -40,6 +40,10 @@ struct FontInfo {
 	u32 first;
 	u32 count;
 	u32 unused;
+	u32 ascent_max;
+	u32 descent_max;
+	u32 height_max;
+	u32 unused2;
 	CharInfo info[0];
 };
 
