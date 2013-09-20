@@ -27,6 +27,7 @@ GLXTN PFNGLDELETERENDERBUFFERSPROC glDeleteRenderbuffers;
 GLXTN PFNGLDELETESHADERPROC glDeleteShader;
 GLXTN PFNGLDELETETEXTURESPROC glDeleteTextures;
 GLXTN PFNGLDELETEVERTEXARRAYSPROC glDeleteVertexArrays;
+GLXTN PFNGLDEPTHMASKPROC glDepthMask;
 GLXTN PFNGLDISABLEPROC glDisable;
 GLXTN PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray;
 GLXTN PFNGLDRAWARRAYSPROC glDrawArrays;
@@ -102,6 +103,7 @@ struct {
 	__GLFN__(glDeleteShader),
 	__GLFN__(glDeleteTextures),
 	__GLFN__(glDeleteVertexArrays),
+	__GLFN__(glDepthMask),
 	__GLFN__(glDisable),
 	__GLFN__(glDisableVertexAttribArray),
 	__GLFN__(glDrawArrays),

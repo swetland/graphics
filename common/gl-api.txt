@@ -19,6 +19,7 @@ glDeleteRenderbuffers
 glDeleteShader
 glDeleteTextures
 glDeleteVertexArrays
+glDepthMask
 glDisable
 glDisableVertexAttribArray
 glDrawArrays
